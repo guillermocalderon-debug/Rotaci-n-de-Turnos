@@ -5,104 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Producción - Libus</title>
     <style>
+        /* DISEÑO OPTIMIZADO PARA TV (Escalado Automático) */
         :root {
             --primary: #e6005a;
             --bg: #f0f2f5;
         }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 15px 30px;
-            height: 100vh; /* Ocupa exactamente el 100% de la pantalla */
+            padding: 2vh 3vw; /* Márgenes relativos al tamaño de la pantalla */
+            height: 100vh;    /* Altura estricta del 100% */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Prohíbe el scroll */
             color: #333;
         }
         
-        /* Encabezado Compacto */
+        /* Encabezado */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 4px solid var(--primary);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            flex-shrink: 0;
+            border-bottom: 0.5vh solid var(--primary);
+            padding-bottom: 1vh;
+            margin-bottom: 2vh;
+            height: 12vh; /* Altura fija para el encabezado */
         }
-        .logo { height: 55px; } /* Tamaño ajustado */
-        .header-title { font-size: 38px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 1px; }
+        
+        /* Manejo del logo: Si se rompe, se ve decente */
+        .logo { 
+            height: 8vh; 
+            max-width: 20vw;
+            object-fit: contain;
+            font-size: 4vh;
+            font-weight: 900;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        
+        .header-title { font-size: 4.5vh; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 1px; }
         .clock-container { text-align: right; }
-        .time { font-size: 45px; font-weight: bold; line-height: 1; color: #111; }
-        .date { font-size: 18px; color: #666; font-weight: bold; text-transform: uppercase; }
+        .time { font-size: 5.5vh; font-weight: bold; line-height: 1; color: #111; }
+        .date { font-size: 2vh; color: #666; font-weight: bold; text-transform: uppercase; }
 
-        /* Contenedor de Columnas que ocupa el espacio restante */
+        /* Contenedor de las 3 Columnas */
         .board {
-            flex: 1;
             display: flex;
-            gap: 20px;
-            min-height: 0; /* Crucial para evitar que se desborde */
+            gap: 2vw;
+            height: 80vh; /* Ocupa el resto exacto de la pantalla */
         }
         
         .col {
             flex: 1;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            border-radius: 1.5vh;
+            box-shadow: 0 1vh 2vh rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
+        
         .col h2 {
             text-align: center;
             margin: 0;
-            padding: 15px;
-            font-size: 28px;
+            padding: 1.5vh;
+            font-size: 3.5vh;
             text-transform: uppercase;
             letter-spacing: 2px;
-            flex-shrink: 0;
+            height: 8vh;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .col.manana h2 { background-color: #ffc107; color: #000; }
         .col.tarde h2 { background-color: #17a2b8; color: #fff; }
         .col.noche h2 { background-color: #343a40; color: #fff; }
         
+        /* Lista de Operarios */
         .worker-list {
-            padding: 15px;
-            flex: 1;
+            padding: 1.5vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly; /* Distribuye las tarjetas equitativamente */
-            gap: 10px;
-            overflow: hidden;
+            gap: 1.2vh;
+            height: calc(100% - 8vh); /* Resta la altura del título h2 */
+            box-sizing: border-box;
         }
 
-        /* Tarjetas de Operarios Ajustables */
+        /* Tarjetas de Operarios Flexibles */
         .worker-card {
             background: #f8f9fa;
-            border-left: 6px solid var(--primary);
-            padding: 12px 20px;
-            border-radius: 0 8px 8px 0;
+            border-left: 0.8vh solid var(--primary);
+            padding: 0 2vw;
+            border-radius: 0 1vh 1vh 0;
+            flex: 1; /* ESTO ES LA MAGIA: Las tarjetas se estiran/encogen para llenar la columna */
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
         }
-        .worker-info { display: flex; flex-direction: column; }
-        .w-name { font-size: 24px; font-weight: bold; color: #222; }
-        .w-machine { font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 2px; }
+        
+        .w-name { font-size: 3vh; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .w-machine { font-size: 2.2vh; color: var(--primary); font-weight: bold; margin-top: 0.5vh; }
         
         #loadingMsg {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 40px; font-weight: bold; color: var(--primary);
+            font-size: 4vh; font-weight: bold; color: var(--primary);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <!-- Logo apuntando al archivo que ya subiste a tu GitHub -->
-        <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
+        <!-- Logo con doble respaldo -->
+        <img src="libus_positivo_CMYK.jpg" alt="LIBUS" class="logo" onerror="this.onerror=null; this.src='https://latam.libus.com/imagenes/logo_libus.png';">
         <h1 class="header-title">Asignación de Máquinas</h1>
         <div class="clock-container">
             <div class="time" id="clock">00:00</div>
@@ -110,19 +129,22 @@
         </div>
     </header>
 
-    <div id="loadingMsg">Sincronizando con Producción...</div>
+    <div id="loadingMsg">Sincronizando con Producción... ⏳</div>
 
     <div class="board" id="mainBoard" style="display: none;">
+        <!-- Turno Mañana -->
         <div class="col manana">
             <h2>☀️ Mañana</h2>
             <div class="worker-list" id="listManana"></div>
         </div>
         
+        <!-- Turno Tarde -->
         <div class="col tarde">
             <h2>🌤️ Tarde</h2>
             <div class="worker-list" id="listTarde"></div>
         </div>
         
+        <!-- Turno Noche -->
         <div class="col noche">
             <h2>🌙 Noche</h2>
             <div class="worker-list" id="listNoche"></div>
@@ -130,8 +152,10 @@
     </div>
 
 <script>
+    // URL DE APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
 
+    // Reloj
     function actualizarReloj() {
         const ahora = new Date();
         const horas = String(ahora.getHours()).padStart(2, '0');
@@ -219,10 +243,8 @@
 
                     let cardHTML = `
                         <div class="worker-card">
-                            <div class="worker-info">
-                                <span class="w-name">${nombreOperario}</span>
-                                <span class="w-machine">⚙️ ${datos.maquina}</span>
-                            </div>
+                            <span class="w-name">${nombreOperario}</span>
+                            <span class="w-machine">⚙️ ${datos.maquina}</span>
                         </div>
                     `;
 
@@ -231,9 +253,9 @@
                     else if (datos.turno === "NOCHE") htmlNoche += cardHTML;
                 }
 
-                document.getElementById('listManana').innerHTML = htmlManana || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
-                document.getElementById('listTarde').innerHTML = htmlTarde || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
-                document.getElementById('listNoche').innerHTML = htmlNoche || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
+                document.getElementById('listManana').innerHTML = htmlManana || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
+                document.getElementById('listTarde').innerHTML = htmlTarde || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
+                document.getElementById('listNoche').innerHTML = htmlNoche || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
 
                 document.getElementById('loadingMsg').style.display = 'none';
                 document.getElementById('mainBoard').style.display = 'flex';
@@ -254,11 +276,14 @@
         document.body.appendChild(script);
     }
 
+    // Iniciar carga
     window.onload = descargarDatosJSONP;
 
+    // Recargar la web completa cada 10 minutos para mantener datos al día en Yodeck
     setInterval(() => {
         window.location.reload();
     }, 600000);
+
 </script>
 </body>
 </html>
