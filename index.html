@@ -23,21 +23,17 @@
         
         #loadingMsg { color: #d9534f; font-weight: bold; margin-bottom: 15px; font-size: 14px; }
         
-        /* Estilos de las Pestañas (Tabs) */
         .tabs { display: none; gap: 8px; margin-bottom: 20px; margin-top: 10px; }
         .tab-btn { flex: 1; padding: 10px 5px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; background-color: #e2e8f0; color: #64748b; }
         .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,86,179,0.3); }
         
-        /* Contenedor de Resultados */
         .result-container { display: none; animation: fadeIn 0.4s ease-in-out; text-align: left; }
         
-        /* Tarjeta de HOY */
         .card-hoy { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; }
         .card-hoy h3 { margin: 0 0 15px 0; color: #333; font-size: 18px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .card-hoy p { margin: 10px 0; font-size: 16px; color: #555; }
         .card-hoy .maquina-text { font-size: 18px; font-weight: bold; color: #222; }
 
-        /* Tabla Semanal/Mensual */
         .tabla-turnos { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         .tabla-turnos th, .tabla-turnos td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
         .tabla-turnos th { background-color: #f1f5f9; color: #333; font-weight: bold; text-transform: uppercase; font-size: 12px; }
@@ -73,7 +69,6 @@
 </div>
 
 <script>
-    // URL DE TU APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4a5m2v4JBikC6qDX-3ec0TGTjNvu0Aar43Zr--bdRWblEXqd9cY6ouTGQ7Y0UBfH1Tg/exec'; 
 
     let datosPlanilla = {
@@ -83,16 +78,10 @@
     
     let vistaActual = 'HOY';
 
-    // Función para normalizar cualquier formato de fecha a DD/MM/YYYY
     function normalizarFecha(str) {
         if (!str) return "";
         let s = String(str).trim();
-        // Si viene en formato Google ISO (2026-09-01T...)
-        if (s.includes("T") && s.includes("-")) {
-            let partes = s.split('T')[0].split('-'); 
-            if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-        // Si viene con barras (1/9/2026 o 01/09/2026)
+        // Garantizar formato DD/MM/YYYY si viene con barras
         if (s.includes("/")) {
             let partes = s.split("/");
             if(partes.length === 3) {
@@ -111,12 +100,25 @@
             try {
                 if (!filasArray || filasArray.length === 0) throw new Error("Planilla vacía");
 
-                // Extraer y limpiar fechas de la Fila 0 (Ignorando las primeras 2 columnas)
-                let rawFechas = filasArray[0].slice(2).filter(f => f !== ""); 
+                // Encontrar dinámicamente la fila de los encabezados (donde dice "Operario")
+                let headerIndex = 0;
+                for (let i = 0; i < Math.min(5, filasArray.length); i++) {
+                    if (filasArray[i] && String(filasArray[i][1]).trim().toLowerCase() === "operario") {
+                        headerIndex = i;
+                        break;
+                    }
+                }
+
+                // Extraer fechas limpias
+                let rawFechas = filasArray[headerIndex].slice(2).filter(f => f && String(f).trim() !== ""); 
                 datosPlanilla.fechas = rawFechas.map(normalizarFecha);
 
+                if(datosPlanilla.fechas.length === 0) {
+                    throw new Error("No se detectaron fechas válidas en la planilla");
+                }
+
                 // Procesar Filas de Operarios
-                for (let i = 1; i < filasArray.length; i++) {
+                for (let i = headerIndex + 1; i < filasArray.length; i++) {
                     let filaActual = filasArray[i];
                     if (filaActual.length < 2) continue;
                     
@@ -135,7 +137,7 @@
                 
             } catch (error) {
                 console.error(error);
-                document.getElementById("loadingMsg").innerText = "❌ Error procesando los datos de la planilla.";
+                document.getElementById("loadingMsg").innerText = "❌ Error: " + error.message;
             } finally {
                 delete window[callbackName];
                 const scriptEl = document.getElementById(callbackName);
@@ -156,9 +158,8 @@
 
     function poblarSelectores() {
         const selectTrabajador = document.getElementById("workerSelect");
-        
-        // Ordenar alfabéticamente
         const nombres = Object.keys(datosPlanilla.operarios).sort();
+        
         nombres.forEach(nombre => {
             let option = document.createElement("option");
             option.value = nombre;
@@ -170,20 +171,19 @@
         selectTrabajador.disabled = false;
     }
 
-    // Analiza si es Mañana, Tarde, Noche o Libre
     function analizarCelda(valor) {
         if (!valor || valor === "") return { turno: "-", maquina: "-", bg: "#e2e8f0", text: "#64748b" };
         
         const v = valor.toUpperCase();
-        if (v.includes("LIBRE")) return { turno: "Día Libre", maquina: "Descanso", bg: "#28a745", text: "#fff" }; // Verde
+        if (v.includes("LIBRE")) return { turno: "Día Libre", maquina: "Descanso", bg: "#28a745", text: "#fff" };
 
         let turnoStr = "Desconocido";
         let bgBadge = "#6c757d";
         let textBadge = "#fff";
 
-        if (v.includes("(M)")) { turnoStr = "Mañana"; bgBadge = "#ffc107"; textBadge = "#000"; } // Amarillo
-        else if (v.includes("(T)")) { turnoStr = "Tarde"; bgBadge = "#17a2b8"; textBadge = "#fff"; } // Azul claro
-        else if (v.includes("(N)")) { turnoStr = "Noche"; bgBadge = "#343a40"; textBadge = "#fff"; } // Negro
+        if (v.includes("(M)")) { turnoStr = "Mañana"; bgBadge = "#ffc107"; textBadge = "#000"; } 
+        else if (v.includes("(T)")) { turnoStr = "Tarde"; bgBadge = "#17a2b8"; textBadge = "#fff"; } 
+        else if (v.includes("(N)")) { turnoStr = "Noche"; bgBadge = "#343a40"; textBadge = "#fff"; } 
 
         let maquinaStr = valor.replace(/\s*\([MTNmtn]\)\s*/g, '').trim();
         if (maquinaStr === "") maquinaStr = "Mantenimiento / Sin máquina";
@@ -191,7 +191,6 @@
         return { turno: turnoStr, maquina: maquinaStr, bg: bgBadge, text: textBadge };
     }
 
-    // Obtener la fecha de hoy en formato DD/MM/YYYY
     function getHoyStr() {
         const hoy = new Date();
         const d = String(hoy.getDate()).padStart(2, '0');
@@ -199,7 +198,6 @@
         return `${d}/${m}/${hoy.getFullYear()}`;
     }
 
-    // Control de las pestañas
     function iniciarVista() {
         const operario = document.getElementById("workerSelect").value;
         if(operario === "") {
@@ -208,39 +206,31 @@
             return;
         }
         document.getElementById("tabsContainer").style.display = "flex";
-        setVista('HOY'); // Por defecto carga el día de hoy
+        setVista('HOY'); 
     }
 
     function setVista(vista) {
         vistaActual = vista;
-        
-        // Actualizar botones visualmente
         document.getElementById("btnHoy").className = "tab-btn" + (vista === 'HOY' ? " active" : "");
         document.getElementById("btnSemana").className = "tab-btn" + (vista === 'SEMANA' ? " active" : "");
         document.getElementById("btnMes").className = "tab-btn" + (vista === 'MES' ? " active" : "");
-        
         renderizarDatos();
     }
 
-    // Dibuja los datos según la pestaña seleccionada
     function renderizarDatos() {
         const operario = document.getElementById("workerSelect").value;
         const resultArea = document.getElementById("resultArea");
         
         let hoyStr = getHoyStr();
         let indexHoy = datosPlanilla.fechas.indexOf(hoyStr);
-        
-        // Si por alguna razón la fecha de hoy no está en la planilla, empezamos desde el primer día disponible
         if(indexHoy === -1) indexHoy = 0; 
 
         let html = '';
 
         if (vistaActual === 'HOY') {
-            // VISTA: DÍA ACTUAL
             let fechaMostrar = datosPlanilla.fechas.includes(hoyStr) ? hoyStr : datosPlanilla.fechas[0];
             let valorAsignado = datosPlanilla.operarios[operario][fechaMostrar];
             let datos = analizarCelda(valorAsignado);
-            
             let titulo = fechaMostrar === hoyStr ? "Turno de Hoy" : `Turno del ${fechaMostrar}`;
 
             html = `
@@ -253,8 +243,7 @@
             `;
         } 
         else {
-            // VISTA: SEMANA o MES (Tabla)
-            let diasAMostrar = (vistaActual === 'SEMANA') ? 7 : 30; // 7 días o 30 días
+            let diasAMostrar = (vistaActual === 'SEMANA') ? 7 : 30;
             let fechasRecorte = datosPlanilla.fechas.slice(indexHoy, indexHoy + diasAMostrar);
 
             html = `
@@ -272,8 +261,6 @@
             fechasRecorte.forEach(fecha => {
                 let valor = datosPlanilla.operarios[operario][fecha];
                 let datos = analizarCelda(valor);
-                
-                // Extraer solo el día y mes para que la tabla no quede tan ancha (ej: 01/09)
                 let fechaCorta = fecha.substring(0, 5); 
 
                 html += `
@@ -292,7 +279,6 @@
         resultArea.style.display = "block";
     }
 
-    // Iniciar
     window.onload = descargarDatosJSONP;
 </script>
 
