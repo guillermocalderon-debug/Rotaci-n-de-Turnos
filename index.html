@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Turnos</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --bg: #f4f7f6;
+            --text: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 { color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover:not(:disabled) { background-color: #004494; }
+        button:disabled { background-color: #999; cursor: not-allowed; }
+        
+        #loadingMsg { color: #d9534f; font-weight: bold; margin-bottom: 15px; }
+        
+        .result-card {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            text-align: left;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .result-card p { margin: 10px 0; font-size: 1.1rem; }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Consulta de Turnos</h2>
+    <p class="subtitle">Verifica tu máquina y horario asignado.</p>
+    
+    <div id="loadingMsg">Cargando datos desde la planilla...</div>
+
+    <div class="form-group">
+        <label for="workerSelect">Operario:</label>
+        <select id="workerSelect" disabled>
+            <option value="">-- Selecciona tu nombre --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="dateSelect">Fecha:</label>
+        <select id="dateSelect" disabled>
+            <option value="">-- Selecciona la fecha --</option>
+        </select>
+    </div>
+    
+    <button id="btnConsultar" onclick="consultarAsignacion()" disabled>Consultar</button>
+
+    <div id="result" class="result-card">
+        <p><strong>Fecha:</strong> <span id="resFecha"></span></p>
+        <p><strong>Turno:</strong> <span id="resTurno" class="badge"></span></p>
+        <p><strong>Máquina(s):</strong> <span id="resMaquinas"></span></p>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // PEGA AQUÍ TU ENLACE DE GOOGLE SHEETS (Debe terminar en output=tsv)
+    // =========================================================================
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2C_bVjLCNloaEw7FJRxt11qint7PLgPS7HFbwNxbP9f6pMhV5BQrwTvDgvJPkf8pXj0pSaYJojOhI/pubhtml?gid=0&single=true';
+    
+    let datosPlanilla = {
+        fechas: [],
+        operarios: {}
+    };
+
+    async function cargarDatos() {
+        try {
+            // Se agrega un parámetro aleatorio para evitar que el navegador guarde caché y muestre datos viejos
+            const cacheBuster = `?v=${new Date().getTime()}`;
+            const response = await fetch(SHEET_URL + cacheBuster);
+            if (!response.ok) throw new Error("Error en la respuesta de red");
+            
+            const data = await response.text();
+            const filas = data.split('\n');
+            
+            // Fila 0: Encabezados -> [Turno, Operario, 01/09/2026, 02/09/2026...]
+            const encabezados = filas[0].split('\t').map(h => h.trim());
+            datosPlanilla.fechas = encabezados.slice(2).filter(f => f !== ""); 
+
+            // Filas 1+: Datos de operarios
+            for (let i = 1; i < filas.length; i++) {
+                if (filas[i].trim() === '') continue;
+                const columnas = filas[i].split('\t');
+                
+                const nombreOperario = columnas[1] ? columnas[1].trim() : "";
+                if (!nombreOperario) continue;
+
+                datosPlanilla.operarios[nombreOperario] = {};
+                
+                // Mapear cada fecha con su valor correspondiente en la celda
+                for (let j = 0; j < datosPlanilla.fechas.length; j++) {
+                    const valorCelda = columnas[j + 2] ? columnas[j + 2].trim() : "";
+                    datosPlanilla.operarios[nombreOperario][datosPlanilla.fechas[j]] = valorCelda;
+                }
+            }
+
+            poblarSelectores();
+
+        } catch (error) {
+            document.getElementById("loadingMsg").innerText = "❌ Error al cargar la planilla. Verifica el enlace TSV.";
+            console.error(error);
+        }
+    }
+
+    function poblarSelectores() {
+        const selectTrabajador = document.getElementById("workerSelect");
+        const selectFecha = document.getElementById("dateSelect");
+        
+        // 1. Poblar Operarios (orden alfabético)
+        const nombres = Object.keys(datosPlanilla.operarios).sort();
+        nombres.forEach(nombre => {
+            let option = document.createElement("option");
+            option.value = nombre;
+            option.text = nombre;
+            selectTrabajador.appendChild(option);
+        });
+
+        // 2. Poblar Fechas
+        datosPlanilla.fechas.forEach(fecha => {
+            let option = document.createElement("option");
+            option.value = fecha;
+            option.text = fecha;
+            selectFecha.appendChild(option);
+        });
+
+        // Intentar seleccionar la fecha de hoy automáticamente si existe en la planilla
+        const hoy = new Date();
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const anio = hoy.getFullYear();
+        const fechaHoy = `${dia}/${mes}/${anio}`;
+        
+        if (datosPlanilla.fechas.includes(fechaHoy)) {
+            selectFecha.value = fechaHoy;
+        } else if (datosPlanilla.fechas.length > 0) {
+            selectFecha.value = datosPlanilla.fechas[0]; // Seleccionar la primera por defecto
+        }
+
+        // Habilitar controles
+        document.getElementById("loadingMsg").style.display = "none";
+        selectTrabajador.disabled = false;
+        selectFecha.disabled = false;
+        document.getElementById("btnConsultar").disabled = false;
+    }
+
+    // Función para interpretar el formato "M1-3-4(M)" o "LIBRE"
+    function analizarCelda(valor) {
+        if (!valor || valor === "") return { turno: "No asignado", maquina: "Ninguna", color: "#6c757d" };
+        
+        const v = valor.toUpperCase();
+        
+        if (v.includes("LIBRE")) {
+            return { turno: "Día Libre", maquina: "Descanso", color: "#28a745" }; // Verde
+        }
+
+        let turnoStr = "Turno Desconocido";
+        let colorBadge = "#6c757d";
+
+        if (v.includes("(M)")) {
+            turnoStr = "Mañana";
+            colorBadge = "#ffc107"; // Amarillo
+        } else if (v.includes("(T)")) {
+            turnoStr = "Tarde";
+            colorBadge = "#17a2b8"; // Azul
+        } else if (v.includes("(N)")) {
+            turnoStr = "Noche";
+            colorBadge = "#343a40"; // Negro
+        }
+
+        // Extraer la máquina eliminando los paréntesis y su contenido
+        let maquinaStr = valor.replace(/\s*\([MTNmtn]\)\s*/g, '').trim();
+        if (maquinaStr === "") maquinaStr = "Mantenimiento / Sin máquina";
+
+        return { turno: turnoStr, maquina: maquinaStr, color: colorBadge };
+    }
+
+    function consultarAsignacion() {
+        const operario = document.getElementById("workerSelect").value;
+        const fecha = document.getElementById("dateSelect").value;
+        const resultDiv = document.getElementById("result");
+
+        if (operario === "" || fecha === "") {
+            alert("Por favor selecciona un operario y una fecha.");
+            resultDiv.style.display = "none";
+            return;
+        }
+
+        const valorAsignado = datosPlanilla.operarios[operario][fecha];
+        const datosProcesados = analizarCelda(valorAsignado);
+
+        document.getElementById("resFecha").innerText = fecha;
+        document.getElementById("resMaquinas").innerText = datosProcesados.maquina;
+        
+        const badgeTurno = document.getElementById("resTurno");
+        badgeTurno.innerText = datosProcesados.turno;
+        badgeTurno.style.backgroundColor = datosProcesados.color;
+        badgeTurno.style.color = datosProcesados.turno === "Mañana" ? "#000" : "#fff";
+
+        resultDiv.style.display = "block";
+    }
+
+    window.onload = cargarDatos;
+</script>
+
+</body>
+</html>
