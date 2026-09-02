@@ -15,12 +15,12 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 2vh 3vw; /* Márgenes relativos al tamaño de la pantalla */
-            height: 100vh;    /* Altura estricta del 100% */
+            padding: 2vh 3vw; 
+            height: 100vh;    
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prohíbe el scroll */
+            overflow: hidden; 
             color: #333;
         }
         
@@ -32,18 +32,13 @@
             border-bottom: 0.5vh solid var(--primary);
             padding-bottom: 1vh;
             margin-bottom: 2vh;
-            height: 12vh; /* Altura fija para el encabezado */
+            height: 12vh; 
         }
         
-        /* Manejo del logo: Si se rompe, se ve decente */
         .logo { 
             height: 8vh; 
             max-width: 20vw;
             object-fit: contain;
-            font-size: 4vh;
-            font-weight: 900;
-            color: var(--primary);
-            text-transform: uppercase;
         }
         
         .header-title { font-size: 4.5vh; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 1px; }
@@ -55,7 +50,7 @@
         .board {
             display: flex;
             gap: 2vw;
-            height: 80vh; /* Ocupa el resto exacto de la pantalla */
+            height: 80vh; 
         }
         
         .col {
@@ -91,7 +86,7 @@
             display: flex;
             flex-direction: column;
             gap: 1.2vh;
-            height: calc(100% - 8vh); /* Resta la altura del título h2 */
+            height: calc(100% - 8vh); 
             box-sizing: border-box;
         }
 
@@ -101,7 +96,7 @@
             border-left: 0.8vh solid var(--primary);
             padding: 0 2vw;
             border-radius: 0 1vh 1vh 0;
-            flex: 1; /* ESTO ES LA MAGIA: Las tarjetas se estiran/encogen para llenar la columna */
+            flex: 1; 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -120,8 +115,9 @@
 <body>
 
     <header>
-        <!-- Logo con doble respaldo -->
-        <img src="libus_positivo_CMYK.jpg" alt="LIBUS" class="logo" onerror="this.onerror=null; this.src='https://latam.libus.com/imagenes/logo_libus.png';">
+        <!-- Etiqueta de imagen corregida para igualar la que funciona en la consulta de turnos -->
+        <img src="libus_positivo_CMYK.jpg" alt="Logo Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
+        
         <h1 class="header-title">Asignación de Máquinas</h1>
         <div class="clock-container">
             <div class="time" id="clock">00:00</div>
