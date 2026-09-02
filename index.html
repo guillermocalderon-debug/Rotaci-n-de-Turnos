@@ -69,7 +69,8 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4a5m2v4JBikC6qDX-3ec0TGTjNvu0Aar43Zr--bdRWblEXqd9cY6ouTGQ7Y0UBfH1Tg/exec'; 
+    // Tu nuevo enlace de Apps Script integrado
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
 
     let datosPlanilla = {
         fechas: [],
@@ -81,7 +82,6 @@
     function normalizarFecha(str) {
         if (!str) return "";
         let s = String(str).trim();
-        // Garantizar formato DD/MM/YYYY si viene con barras
         if (s.includes("/")) {
             let partes = s.split("/");
             if(partes.length === 3) {
@@ -100,7 +100,6 @@
             try {
                 if (!filasArray || filasArray.length === 0) throw new Error("Planilla vacía");
 
-                // Encontrar dinámicamente la fila de los encabezados (donde dice "Operario")
                 let headerIndex = 0;
                 for (let i = 0; i < Math.min(5, filasArray.length); i++) {
                     if (filasArray[i] && String(filasArray[i][1]).trim().toLowerCase() === "operario") {
@@ -109,7 +108,6 @@
                     }
                 }
 
-                // Extraer fechas limpias
                 let rawFechas = filasArray[headerIndex].slice(2).filter(f => f && String(f).trim() !== ""); 
                 datosPlanilla.fechas = rawFechas.map(normalizarFecha);
 
@@ -117,7 +115,6 @@
                     throw new Error("No se detectaron fechas válidas en la planilla");
                 }
 
-                // Procesar Filas de Operarios
                 for (let i = headerIndex + 1; i < filasArray.length; i++) {
                     let filaActual = filasArray[i];
                     if (filaActual.length < 2) continue;
