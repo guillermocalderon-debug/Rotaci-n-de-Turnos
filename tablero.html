@@ -115,9 +115,7 @@
 <body>
 
     <header>
-        <!-- Etiqueta de imagen corregida para igualar la que funciona en la consulta de turnos -->
         <img src="libus_positivo_CMYK.jpg" alt="Logo Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
-        
         <h1 class="header-title">Asignación de Máquinas</h1>
         <div class="clock-container">
             <div class="time" id="clock">00:00</div>
@@ -150,6 +148,7 @@
 <script>
     // URL DE APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
+    let primeraCarga = true;
 
     // Reloj
     function actualizarReloj() {
@@ -201,6 +200,7 @@
         return { turno: turnoStr, maquina: maquinaStr };
     }
 
+    // DESCARGA SILENCIOSA: Actualiza sin borrar la pantalla
     function descargarDatosJSONP() {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         
@@ -249,16 +249,21 @@
                     else if (datos.turno === "NOCHE") htmlNoche += cardHTML;
                 }
 
+                // Inyección rápida al DOM
                 document.getElementById('listManana').innerHTML = htmlManana || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
                 document.getElementById('listTarde').innerHTML = htmlTarde || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
                 document.getElementById('listNoche').innerHTML = htmlNoche || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
 
-                document.getElementById('loadingMsg').style.display = 'none';
-                document.getElementById('mainBoard').style.display = 'flex';
+                // Ocultar mensaje de carga solo en el primer arranque
+                if(primeraCarga) {
+                    document.getElementById('loadingMsg').style.display = 'none';
+                    document.getElementById('mainBoard').style.display = 'flex';
+                    primeraCarga = false;
+                }
 
             } catch (error) {
                 console.error(error);
-                document.getElementById("loadingMsg").innerText = "❌ Error sincronizando datos.";
+                if(primeraCarga) document.getElementById("loadingMsg").innerText = "❌ Error sincronizando datos.";
             } finally {
                 delete window[callbackName];
                 const scriptEl = document.getElementById(callbackName);
@@ -269,16 +274,20 @@
         const script = document.createElement('script');
         script.id = callbackName;
         script.src = APPS_SCRIPT_URL + "?callback=" + callbackName;
+        
+        script.onerror = function() {
+            if(primeraCarga) document.getElementById("loadingMsg").innerText = "❌ Problema de conexión a internet.";
+        }
+        
         document.body.appendChild(script);
     }
 
-    // Iniciar carga
+    // Arrancar la primera vez
     window.onload = descargarDatosJSONP;
 
-    // Recargar la web completa cada 10 minutos para mantener datos al día en Yodeck
-    setInterval(() => {
-        window.location.reload();
-    }, 600000);
+    // ACTUALIZACIÓN EN SEGUNDO PLANO CADA 10 MINUTOS
+    // Esto evita que la pantalla se ponga en blanco, solo refresca los datos.
+    setInterval(descargarDatosJSONP, 600000);
 
 </script>
 </body>
