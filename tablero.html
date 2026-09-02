@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Producción - Libus</title>
     <style>
-        /* Diseño optimizado para TV / Yodeck (1080p) */
         :root {
             --primary: #e6005a;
             --bg: #f0f2f5;
@@ -14,39 +13,44 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 20px 40px;
-            overflow: hidden; /* Evita barras de desplazamiento en la TV */
+            padding: 15px 30px;
+            height: 100vh; /* Ocupa exactamente el 100% de la pantalla */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             color: #333;
         }
         
-        /* Encabezado */
+        /* Encabezado Compacto */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 5px solid var(--primary);
-            padding-bottom: 15px;
-            margin-bottom: 30px;
+            border-bottom: 4px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
         }
-        .logo { height: 70px; }
-        .header-title { font-size: 45px; font-weight: 900; text-transform: uppercase; margin: 0; }
+        .logo { height: 55px; } /* Tamaño ajustado */
+        .header-title { font-size: 38px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 1px; }
         .clock-container { text-align: right; }
-        .time { font-size: 55px; font-weight: bold; line-height: 1; color: #111; }
-        .date { font-size: 24px; color: #666; font-weight: bold; text-transform: uppercase; }
+        .time { font-size: 45px; font-weight: bold; line-height: 1; color: #111; }
+        .date { font-size: 18px; color: #666; font-weight: bold; text-transform: uppercase; }
 
-        /* Contenedor de Columnas */
+        /* Contenedor de Columnas que ocupa el espacio restante */
         .board {
+            flex: 1;
             display: flex;
-            gap: 30px;
-            height: calc(100vh - 200px);
+            gap: 20px;
+            min-height: 0; /* Crucial para evitar que se desborde */
         }
         
-        /* Columnas de Turnos */
         .col {
             flex: 1;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -54,36 +58,39 @@
         .col h2 {
             text-align: center;
             margin: 0;
-            padding: 25px;
-            font-size: 35px;
+            padding: 15px;
+            font-size: 28px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            flex-shrink: 0;
         }
         .col.manana h2 { background-color: #ffc107; color: #000; }
         .col.tarde h2 { background-color: #17a2b8; color: #fff; }
         .col.noche h2 { background-color: #343a40; color: #fff; }
         
         .worker-list {
-            padding: 20px;
-            flex-grow: 1;
+            padding: 15px;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            justify-content: space-evenly; /* Distribuye las tarjetas equitativamente */
+            gap: 10px;
+            overflow: hidden;
         }
 
-        /* Tarjetas de Operarios */
+        /* Tarjetas de Operarios Ajustables */
         .worker-card {
             background: #f8f9fa;
-            border-left: 8px solid var(--primary);
-            padding: 20px;
-            border-radius: 0 10px 10px 0;
+            border-left: 6px solid var(--primary);
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .worker-info { display: flex; flex-direction: column; }
-        .w-name { font-size: 28px; font-weight: bold; color: #222; }
-        .w-machine { font-size: 22px; color: var(--primary); font-weight: bold; margin-top: 5px; }
+        .w-name { font-size: 24px; font-weight: bold; color: #222; }
+        .w-machine { font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 2px; }
         
         #loadingMsg {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -94,7 +101,8 @@
 <body>
 
     <header>
-        <img src="https://latam.libus.com/imagenes/logo_libus.png" alt="Libus" class="logo">
+        <!-- Logo apuntando al archivo que ya subiste a tu GitHub -->
+        <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
         <h1 class="header-title">Asignación de Máquinas</h1>
         <div class="clock-container">
             <div class="time" id="clock">00:00</div>
@@ -105,19 +113,16 @@
     <div id="loadingMsg">Sincronizando con Producción...</div>
 
     <div class="board" id="mainBoard" style="display: none;">
-        <!-- Turno Mañana -->
         <div class="col manana">
             <h2>☀️ Mañana</h2>
             <div class="worker-list" id="listManana"></div>
         </div>
         
-        <!-- Turno Tarde -->
         <div class="col tarde">
             <h2>🌤️ Tarde</h2>
             <div class="worker-list" id="listTarde"></div>
         </div>
         
-        <!-- Turno Noche -->
         <div class="col noche">
             <h2>🌙 Noche</h2>
             <div class="worker-list" id="listNoche"></div>
@@ -125,10 +130,8 @@
     </div>
 
 <script>
-    // URL DE APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
 
-    // Reloj en vivo
     function actualizarReloj() {
         const ahora = new Date();
         const horas = String(ahora.getHours()).padStart(2, '0');
@@ -141,7 +144,6 @@
     setInterval(actualizarReloj, 1000);
     actualizarReloj();
 
-    // Lógica de Datos
     function normalizarFecha(str) {
         if (!str) return "";
         let s = String(str).trim();
@@ -199,14 +201,12 @@
                 
                 let hoyStr = getHoyStr();
                 let indexHoy = fechas.indexOf(hoyStr);
-                // Si la fecha de hoy no está en el excel, por defecto mostramos la primera columna de fechas
                 if (indexHoy === -1) indexHoy = 0; 
 
                 let htmlManana = '';
                 let htmlTarde = '';
                 let htmlNoche = '';
 
-                // Recorrer operarios
                 for (let i = headerIndex + 1; i < filasArray.length; i++) {
                     let filaActual = filasArray[i];
                     if (filaActual.length < 2) continue;
@@ -231,7 +231,6 @@
                     else if (datos.turno === "NOCHE") htmlNoche += cardHTML;
                 }
 
-                // Inyectar en el DOM
                 document.getElementById('listManana').innerHTML = htmlManana || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
                 document.getElementById('listTarde').innerHTML = htmlTarde || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
                 document.getElementById('listNoche').innerHTML = htmlNoche || '<p style="text-align:center; color:#999; font-size:20px;">Sin asignaciones</p>';
@@ -255,15 +254,11 @@
         document.body.appendChild(script);
     }
 
-    // Iniciar carga de datos
     window.onload = descargarDatosJSONP;
 
-    // AUTO-ACTUALIZAR LA PÁGINA CADA 10 MINUTOS (600,000 milisegundos)
-    // Ideal para Yodeck, asegura que la memoria no se sature y los datos estén frescos.
     setInterval(() => {
         window.location.reload();
     }, 600000);
-
 </script>
 </body>
 </html>
