@@ -11,20 +11,39 @@
             --text: #333;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: var(--primary); margin-bottom: 5px; }
-        p.subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { font-weight: bold; font-size: 0.9rem; color: #555; display: block; margin-bottom: 5px; }
-        select, button { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover:not(:disabled) { background-color: #004494; }
-        button:disabled { background-color: #999; cursor: not-allowed; }
-        #loadingMsg { color: #d9534f; font-weight: bold; margin-bottom: 15px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; box-sizing: border-box; }
         
-        .result-card { display: none; margin-top: 25px; padding: 20px; border-radius: 8px; background-color: #e9ecef; text-align: left; animation: fadeIn 0.4s ease-in-out; }
-        .result-card p { margin: 10px 0; font-size: 1.1rem; }
-        .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.9rem; }
+        h2 { color: var(--primary); margin-bottom: 5px; font-size: 22px; }
+        p.subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { font-weight: bold; font-size: 0.9rem; color: #555; display: block; margin-bottom: 8px; text-transform: uppercase; }
+        select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; background-color: #fdfdfd; transition: 0.3s; }
+        select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(0, 86, 179, 0.2); }
+        
+        #loadingMsg { color: #d9534f; font-weight: bold; margin-bottom: 15px; font-size: 14px; }
+        
+        /* Estilos de las Pestañas (Tabs) */
+        .tabs { display: none; gap: 8px; margin-bottom: 20px; margin-top: 10px; }
+        .tab-btn { flex: 1; padding: 10px 5px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; background-color: #e2e8f0; color: #64748b; }
+        .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,86,179,0.3); }
+        
+        /* Contenedor de Resultados */
+        .result-container { display: none; animation: fadeIn 0.4s ease-in-out; text-align: left; }
+        
+        /* Tarjeta de HOY */
+        .card-hoy { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; }
+        .card-hoy h3 { margin: 0 0 15px 0; color: #333; font-size: 18px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .card-hoy p { margin: 10px 0; font-size: 16px; color: #555; }
+        .card-hoy .maquina-text { font-size: 18px; font-weight: bold; color: #222; }
+
+        /* Tabla Semanal/Mensual */
+        .tabla-turnos { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .tabla-turnos th, .tabla-turnos td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .tabla-turnos th { background-color: #f1f5f9; color: #333; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+        .tabla-turnos tr:hover { background-color: #f8f9fa; }
+        
+        .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -35,39 +54,55 @@
     <h2>Consulta de Turnos</h2>
     <p class="subtitle">Verifica tu máquina y horario asignado.</p>
     
-    <div id="loadingMsg">Cargando base de datos... ⏳</div>
+    <div id="loadingMsg">Conectando con la base de datos... ⏳</div>
 
     <div class="form-group">
         <label for="workerSelect">Operario:</label>
-        <select id="workerSelect" disabled>
+        <select id="workerSelect" disabled onchange="iniciarVista()">
             <option value="">-- Selecciona tu nombre --</option>
         </select>
     </div>
 
-    <div class="form-group">
-        <label for="dateSelect">Fecha:</label>
-        <select id="dateSelect" disabled>
-            <option value="">-- Selecciona la fecha --</option>
-        </select>
+    <div class="tabs" id="tabsContainer">
+        <button class="tab-btn active" onclick="setVista('HOY')" id="btnHoy">Día Actual</button>
+        <button class="tab-btn" onclick="setVista('SEMANA')" id="btnSemana">Próx. 7 Días</button>
+        <button class="tab-btn" onclick="setVista('MES')" id="btnMes">Mes Completo</button>
     </div>
-    
-    <button id="btnConsultar" onclick="consultarAsignacion()" disabled>Consultar</button>
 
-    <div id="result" class="result-card">
-        <p><strong>Fecha:</strong> <span id="resFecha"></span></p>
-        <p><strong>Turno:</strong> <span id="resTurno" class="badge"></span></p>
-        <p><strong>Máquina(s):</strong> <span id="resMaquinas"></span></p>
-    </div>
+    <div id="resultArea" class="result-container"></div>
 </div>
 
 <script>
-    // URL DE TU APPS SCRIPT YA CONFIGURADA
+    // URL DE TU APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4a5m2v4JBikC6qDX-3ec0TGTjNvu0Aar43Zr--bdRWblEXqd9cY6ouTGQ7Y0UBfH1Tg/exec'; 
 
     let datosPlanilla = {
         fechas: [],
         operarios: {}
     };
+    
+    let vistaActual = 'HOY';
+
+    // Función para normalizar cualquier formato de fecha a DD/MM/YYYY
+    function normalizarFecha(str) {
+        if (!str) return "";
+        let s = String(str).trim();
+        // Si viene en formato Google ISO (2026-09-01T...)
+        if (s.includes("T") && s.includes("-")) {
+            let partes = s.split('T')[0].split('-'); 
+            if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+        // Si viene con barras (1/9/2026 o 01/09/2026)
+        if (s.includes("/")) {
+            let partes = s.split("/");
+            if(partes.length === 3) {
+                let d = String(partes[0]).padStart(2, '0');
+                let m = String(partes[1]).padStart(2, '0');
+                return `${d}/${m}/${partes[2]}`;
+            }
+        }
+        return s;
+    }
 
     function descargarDatosJSONP() {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
@@ -76,25 +111,11 @@
             try {
                 if (!filasArray || filasArray.length === 0) throw new Error("Planilla vacía");
 
-                // Fila 0: Encabezados -> [Turno, Operario, 01/09/2026...]
-                datosPlanilla.fechas = filasArray[0].slice(2).filter(f => f !== ""); 
-                
-                // Formatear fechas
-                datosPlanilla.fechas = datosPlanilla.fechas.map(f => {
-                    if (f instanceof Date) {
-                       let d = String(f.getDate()).padStart(2, '0');
-                       let m = String(f.getMonth() + 1).padStart(2, '0');
-                       let y = f.getFullYear();
-                       return `${d}/${m}/${y}`;
-                    }
-                    if (typeof f === 'string' && f.includes('T')) {
-                        let partes = f.split('T')[0].split('-'); 
-                        if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
-                    }
-                    return String(f);
-                });
+                // Extraer y limpiar fechas de la Fila 0 (Ignorando las primeras 2 columnas)
+                let rawFechas = filasArray[0].slice(2).filter(f => f !== ""); 
+                datosPlanilla.fechas = rawFechas.map(normalizarFecha);
 
-                // Filas 1+: Datos de operarios
+                // Procesar Filas de Operarios
                 for (let i = 1; i < filasArray.length; i++) {
                     let filaActual = filasArray[i];
                     if (filaActual.length < 2) continue;
@@ -135,9 +156,8 @@
 
     function poblarSelectores() {
         const selectTrabajador = document.getElementById("workerSelect");
-        const selectFecha = document.getElementById("dateSelect");
         
-        // Poblar Operarios
+        // Ordenar alfabéticamente
         const nombres = Object.keys(datosPlanilla.operarios).sort();
         nombres.forEach(nombre => {
             let option = document.createElement("option");
@@ -146,78 +166,133 @@
             selectTrabajador.appendChild(option);
         });
 
-        // Poblar Fechas
-        datosPlanilla.fechas.forEach(fecha => {
-            let option = document.createElement("option");
-            option.value = fecha;
-            option.text = fecha;
-            selectFecha.appendChild(option);
-        });
-
-        // Intentar seleccionar la fecha de hoy automáticamente
-        const hoy = new Date();
-        const dia = String(hoy.getDate()).padStart(2, '0');
-        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-        const anio = hoy.getFullYear();
-        const fechaHoy = `${dia}/${mes}/${anio}`;
-        
-        if (datosPlanilla.fechas.includes(fechaHoy)) {
-            selectFecha.value = fechaHoy;
-        } else if (datosPlanilla.fechas.length > 0) {
-            selectFecha.value = datosPlanilla.fechas[0];
-        }
-
-        // Habilitar controles
         document.getElementById("loadingMsg").style.display = "none";
         selectTrabajador.disabled = false;
-        selectFecha.disabled = false;
-        document.getElementById("btnConsultar").disabled = false;
     }
 
+    // Analiza si es Mañana, Tarde, Noche o Libre
     function analizarCelda(valor) {
-        if (!valor || valor === "") return { turno: "No asignado", maquina: "Ninguna", color: "#6c757d" };
+        if (!valor || valor === "") return { turno: "-", maquina: "-", bg: "#e2e8f0", text: "#64748b" };
         
         const v = valor.toUpperCase();
-        if (v.includes("LIBRE")) return { turno: "Día Libre", maquina: "Descanso", color: "#28a745" };
+        if (v.includes("LIBRE")) return { turno: "Día Libre", maquina: "Descanso", bg: "#28a745", text: "#fff" }; // Verde
 
         let turnoStr = "Desconocido";
-        let colorBadge = "#6c757d";
+        let bgBadge = "#6c757d";
+        let textBadge = "#fff";
 
-        if (v.includes("(M)")) { turnoStr = "Mañana"; colorBadge = "#ffc107"; } 
-        else if (v.includes("(T)")) { turnoStr = "Tarde"; colorBadge = "#17a2b8"; } 
-        else if (v.includes("(N)")) { turnoStr = "Noche"; colorBadge = "#343a40"; }
+        if (v.includes("(M)")) { turnoStr = "Mañana"; bgBadge = "#ffc107"; textBadge = "#000"; } // Amarillo
+        else if (v.includes("(T)")) { turnoStr = "Tarde"; bgBadge = "#17a2b8"; textBadge = "#fff"; } // Azul claro
+        else if (v.includes("(N)")) { turnoStr = "Noche"; bgBadge = "#343a40"; textBadge = "#fff"; } // Negro
 
         let maquinaStr = valor.replace(/\s*\([MTNmtn]\)\s*/g, '').trim();
         if (maquinaStr === "") maquinaStr = "Mantenimiento / Sin máquina";
 
-        return { turno: turnoStr, maquina: maquinaStr, color: colorBadge };
+        return { turno: turnoStr, maquina: maquinaStr, bg: bgBadge, text: textBadge };
     }
 
-    function consultarAsignacion() {
-        const operario = document.getElementById("workerSelect").value;
-        const fecha = document.getElementById("dateSelect").value;
-        const resultDiv = document.getElementById("result");
+    // Obtener la fecha de hoy en formato DD/MM/YYYY
+    function getHoyStr() {
+        const hoy = new Date();
+        const d = String(hoy.getDate()).padStart(2, '0');
+        const m = String(hoy.getMonth() + 1).padStart(2, '0');
+        return `${d}/${m}/${hoy.getFullYear()}`;
+    }
 
-        if (operario === "" || fecha === "") {
-            alert("Por favor selecciona un operario y una fecha.");
-            resultDiv.style.display = "none";
+    // Control de las pestañas
+    function iniciarVista() {
+        const operario = document.getElementById("workerSelect").value;
+        if(operario === "") {
+            document.getElementById("tabsContainer").style.display = "none";
+            document.getElementById("resultArea").style.display = "none";
             return;
         }
-
-        const valorAsignado = datosPlanilla.operarios[operario][fecha];
-        const datosProcesados = analizarCelda(valorAsignado);
-
-        document.getElementById("resFecha").innerText = fecha;
-        document.getElementById("resMaquinas").innerText = datosProcesados.maquina;
-        
-        const badgeTurno = document.getElementById("resTurno");
-        badgeTurno.innerText = datosProcesados.turno;
-        badgeTurno.style.backgroundColor = datosProcesados.color;
-        badgeTurno.style.color = datosProcesados.turno === "Mañana" ? "#000" : "#fff";
-
-        resultDiv.style.display = "block";
+        document.getElementById("tabsContainer").style.display = "flex";
+        setVista('HOY'); // Por defecto carga el día de hoy
     }
 
+    function setVista(vista) {
+        vistaActual = vista;
+        
+        // Actualizar botones visualmente
+        document.getElementById("btnHoy").className = "tab-btn" + (vista === 'HOY' ? " active" : "");
+        document.getElementById("btnSemana").className = "tab-btn" + (vista === 'SEMANA' ? " active" : "");
+        document.getElementById("btnMes").className = "tab-btn" + (vista === 'MES' ? " active" : "");
+        
+        renderizarDatos();
+    }
+
+    // Dibuja los datos según la pestaña seleccionada
+    function renderizarDatos() {
+        const operario = document.getElementById("workerSelect").value;
+        const resultArea = document.getElementById("resultArea");
+        
+        let hoyStr = getHoyStr();
+        let indexHoy = datosPlanilla.fechas.indexOf(hoyStr);
+        
+        // Si por alguna razón la fecha de hoy no está en la planilla, empezamos desde el primer día disponible
+        if(indexHoy === -1) indexHoy = 0; 
+
+        let html = '';
+
+        if (vistaActual === 'HOY') {
+            // VISTA: DÍA ACTUAL
+            let fechaMostrar = datosPlanilla.fechas.includes(hoyStr) ? hoyStr : datosPlanilla.fechas[0];
+            let valorAsignado = datosPlanilla.operarios[operario][fechaMostrar];
+            let datos = analizarCelda(valorAsignado);
+            
+            let titulo = fechaMostrar === hoyStr ? "Turno de Hoy" : `Turno del ${fechaMostrar}`;
+
+            html = `
+            <div class="card-hoy">
+                <h3>📅 ${titulo}</h3>
+                <p><strong>Turno:</strong> <span class="badge" style="background:${datos.bg}; color:${datos.text}">${datos.turno}</span></p>
+                <p><strong>Máquina(s):</strong></p>
+                <p class="maquina-text">${datos.maquina}</p>
+            </div>
+            `;
+        } 
+        else {
+            // VISTA: SEMANA o MES (Tabla)
+            let diasAMostrar = (vistaActual === 'SEMANA') ? 7 : 30; // 7 días o 30 días
+            let fechasRecorte = datosPlanilla.fechas.slice(indexHoy, indexHoy + diasAMostrar);
+
+            html = `
+            <table class="tabla-turnos">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Turno</th>
+                        <th>Máquina</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            fechasRecorte.forEach(fecha => {
+                let valor = datosPlanilla.operarios[operario][fecha];
+                let datos = analizarCelda(valor);
+                
+                // Extraer solo el día y mes para que la tabla no quede tan ancha (ej: 01/09)
+                let fechaCorta = fecha.substring(0, 5); 
+
+                html += `
+                <tr>
+                    <td><strong>${fechaCorta}</strong></td>
+                    <td><span class="badge" style="background:${datos.bg}; color:${datos.text}">${datos.turno}</span></td>
+                    <td>${datos.maquina}</td>
+                </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+        }
+
+        resultArea.innerHTML = html;
+        resultArea.style.display = "block";
+    }
+
+    // Iniciar
     window.onload = descargarDatosJSONP;
 </script>
 
