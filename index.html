@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Turnos</title>
+    <title>Consulta de Turnos - Libus</title>
     <style>
         :root {
-            --primary: #0056b3;
+            /* Colores oficiales de la marca Libus */
+            --primary: #e6005a; 
             --bg: #f4f7f6;
             --text: #333;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; box-sizing: border-box; }
         
-        h2 { color: var(--primary); margin-bottom: 5px; font-size: 22px; }
+        /* Estilos del Logo */
+        .logo { max-width: 160px; margin-bottom: 10px; }
+        
+        h2 { color: #333; margin-bottom: 5px; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
         p.subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
         
         .form-group { text-align: left; margin-bottom: 20px; }
         label { font-weight: bold; font-size: 0.9rem; color: #555; display: block; margin-bottom: 8px; text-transform: uppercase; }
         select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; background-color: #fdfdfd; transition: 0.3s; }
-        select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(0, 86, 179, 0.2); }
+        select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(230, 0, 90, 0.2); }
         
         #loadingMsg { color: #d9534f; font-weight: bold; margin-bottom: 15px; font-size: 14px; }
         
         .tabs { display: none; gap: 8px; margin-bottom: 20px; margin-top: 10px; }
         .tab-btn { flex: 1; padding: 10px 5px; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; background-color: #e2e8f0; color: #64748b; }
-        .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,86,179,0.3); }
+        .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(230, 0, 90, 0.3); }
         
         .result-container { display: none; animation: fadeIn 0.4s ease-in-out; text-align: left; }
         
-        .card-hoy { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; }
+        .card-hoy { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; border-top: 4px solid var(--primary); }
         .card-hoy h3 { margin: 0 0 15px 0; color: #333; font-size: 18px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .card-hoy p { margin: 10px 0; font-size: 16px; color: #555; }
         .card-hoy .maquina-text { font-size: 18px; font-weight: bold; color: #222; }
@@ -47,6 +51,9 @@
 <body>
 
 <div class="container">
+    <!-- LOGO DE LIBUS -->
+    <img src="libus_positivo_CMYK.jpg" alt="Logo Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
+    
     <h2>Consulta de Turnos</h2>
     <p class="subtitle">Verifica tu máquina y horario asignado.</p>
     
@@ -69,7 +76,7 @@
 </div>
 
 <script>
-    // Tu nuevo enlace de Apps Script integrado
+    // Enlace de Apps Script (Ya actualizado con el último)
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
 
     let datosPlanilla = {
