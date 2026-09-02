@@ -32,7 +32,7 @@
             border-bottom: 0.5vh solid var(--primary);
             padding-bottom: 1vh;
             margin-bottom: 2vh;
-            height: 12vh; 
+            flex-shrink: 0; /* Evita que el encabezado se aplaste */
         }
         
         .logo { 
@@ -50,7 +50,8 @@
         .board {
             display: flex;
             gap: 2vw;
-            height: 74vh; /* Reducido para dar espacio al pie de página */
+            flex: 1; /* LA MAGIA ESTÁ AQUÍ: Toma todo el espacio sobrante automáticamente */
+            min-height: 0; 
         }
         
         .col {
@@ -75,6 +76,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         .col.manana h2 { background-color: #ffc107; color: #000; }
         .col.tarde h2 { background-color: #17a2b8; color: #fff; }
@@ -86,8 +88,9 @@
             display: flex;
             flex-direction: column;
             gap: 1.2vh;
-            height: calc(100% - 8vh); 
+            flex: 1; /* Se estira para llenar la columna */
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         /* Tarjetas de Operarios Flexibles */
@@ -108,9 +111,10 @@
         
         /* Nota Inferior */
         .footer-note {
+            flex-shrink: 0; /* Evita que la nota se aplaste o se esconda */
             margin-top: 2vh;
-            background-color: #ffe5ed; /* Fondo rosa claro */
-            color: #b30046; /* Rojo oscuro legible */
+            background-color: #ffe5ed;
+            color: #b30046;
             border-left: 0.8vh solid var(--primary);
             padding: 1.5vh;
             border-radius: 1vh;
@@ -118,7 +122,7 @@
             font-weight: 600;
             text-align: center;
             box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.05);
-            display: none; /* Se muestra junto con el tablero */
+            display: none; 
         }
 
         #loadingMsg {
@@ -141,26 +145,21 @@
     <div id="loadingMsg">Sincronizando con Producción... ⏳</div>
 
     <div class="board" id="mainBoard" style="display: none;">
-        <!-- Turno Mañana -->
         <div class="col manana">
             <h2>☀️ Mañana</h2>
             <div class="worker-list" id="listManana"></div>
         </div>
-        
-        <!-- Turno Tarde -->
         <div class="col tarde">
             <h2>🌤️ Tarde</h2>
             <div class="worker-list" id="listTarde"></div>
         </div>
-        
-        <!-- Turno Noche -->
         <div class="col noche">
             <h2>🌙 Noche</h2>
             <div class="worker-list" id="listNoche"></div>
         </div>
     </div>
 
-    <!-- Novedad: Aviso Inferior -->
+    <!-- Aviso Inferior -->
     <div class="footer-note" id="footerNote">
         <strong>⚠️ AVISO:</strong> Si alguna máquina se encuentra detenida, se deberá realizar ensambles o cualquier otra actividad que el líder de equipo les asigne.
     </div>
@@ -273,7 +272,7 @@
                 if(primeraCarga) {
                     document.getElementById('loadingMsg').style.display = 'none';
                     document.getElementById('mainBoard').style.display = 'flex';
-                    document.getElementById('footerNote').style.display = 'block'; // Muestra la nota
+                    document.getElementById('footerNote').style.display = 'block'; 
                     primeraCarga = false;
                 }
 
