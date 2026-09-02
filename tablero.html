@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Producción - Libus</title>
     <style>
-        /* DISEÑO OPTIMIZADO PARA TV (Escalado Automático) */
         :root {
             --primary: #e6005a;
             --bg: #f0f2f5;
@@ -15,7 +14,8 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 2vh 3vw; 
+            /* Le damos MÁS margen abajo (4vh) para evitar que la carcasa de la TV se coma la nota */
+            padding: 2vh 3vw 4vh 3vw; 
             height: 100vh;    
             box-sizing: border-box;
             display: flex;
@@ -32,7 +32,7 @@
             border-bottom: 0.5vh solid var(--primary);
             padding-bottom: 1vh;
             margin-bottom: 2vh;
-            flex-shrink: 0; /* Evita que el encabezado se aplaste */
+            flex-shrink: 0; 
         }
         
         .logo { 
@@ -50,7 +50,7 @@
         .board {
             display: flex;
             gap: 2vw;
-            flex: 1; /* LA MAGIA ESTÁ AQUÍ: Toma todo el espacio sobrante automáticamente */
+            flex: 1; /* Absorbe el espacio sobrante */
             min-height: 0; 
         }
         
@@ -82,18 +82,16 @@
         .col.tarde h2 { background-color: #17a2b8; color: #fff; }
         .col.noche h2 { background-color: #343a40; color: #fff; }
         
-        /* Lista de Operarios */
         .worker-list {
             padding: 1.5vh;
             display: flex;
             flex-direction: column;
             gap: 1.2vh;
-            flex: 1; /* Se estira para llenar la columna */
+            flex: 1; 
             box-sizing: border-box;
             overflow: hidden;
         }
 
-        /* Tarjetas de Operarios Flexibles */
         .worker-card {
             background: #f8f9fa;
             border-left: 0.8vh solid var(--primary);
@@ -109,25 +107,29 @@
         .w-name { font-size: 3vh; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .w-machine { font-size: 2.2vh; color: var(--primary); font-weight: bold; margin-top: 0.5vh; }
         
-        /* Nota Inferior */
+        /* Nota Inferior: Ahora visible de forma permanente sin JS */
         .footer-note {
-            flex-shrink: 0; /* Evita que la nota se aplaste o se esconda */
+            flex-shrink: 0; 
             margin-top: 2vh;
             background-color: #ffe5ed;
             color: #b30046;
             border-left: 0.8vh solid var(--primary);
-            padding: 1.5vh;
+            padding: 2vh;
             border-radius: 1vh;
-            font-size: 2.4vh;
-            font-weight: 600;
+            font-size: 2.6vh;
+            font-weight: 700;
             text-align: center;
             box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.05);
-            display: none; 
+            display: block; /* Siempre visible */
         }
 
         #loadingMsg {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 4vh; font-weight: bold; color: var(--primary);
+            background: rgba(255,255,255,0.9);
+            padding: 2vh 4vw;
+            border-radius: 2vh;
+            z-index: 100;
         }
     </style>
 </head>
@@ -159,9 +161,9 @@
         </div>
     </div>
 
-    <!-- Aviso Inferior -->
+    <!-- Aviso Inferior estático -->
     <div class="footer-note" id="footerNote">
-        <strong>⚠️ AVISO:</strong> Si alguna máquina se encuentra detenida, se deberá realizar ensambles o cualquier otra actividad que el líder de equipo les asigne.
+        ⚠️ AVISO: Si alguna máquina se encuentra detenida, se deberá realizar ensambles o cualquier otra actividad que el líder de equipo les asigne.
     </div>
 
 <script>
@@ -272,7 +274,6 @@
                 if(primeraCarga) {
                     document.getElementById('loadingMsg').style.display = 'none';
                     document.getElementById('mainBoard').style.display = 'flex';
-                    document.getElementById('footerNote').style.display = 'block'; 
                     primeraCarga = false;
                 }
 
