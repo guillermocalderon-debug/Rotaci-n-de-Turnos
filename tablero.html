@@ -50,7 +50,7 @@
         .board {
             display: flex;
             gap: 2vw;
-            height: 80vh; 
+            height: 74vh; /* Reducido para dar espacio al pie de página */
         }
         
         .col {
@@ -106,6 +106,21 @@
         .w-name { font-size: 3vh; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .w-machine { font-size: 2.2vh; color: var(--primary); font-weight: bold; margin-top: 0.5vh; }
         
+        /* Nota Inferior */
+        .footer-note {
+            margin-top: 2vh;
+            background-color: #ffe5ed; /* Fondo rosa claro */
+            color: #b30046; /* Rojo oscuro legible */
+            border-left: 0.8vh solid var(--primary);
+            padding: 1.5vh;
+            border-radius: 1vh;
+            font-size: 2.4vh;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.05);
+            display: none; /* Se muestra junto con el tablero */
+        }
+
         #loadingMsg {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 4vh; font-weight: bold; color: var(--primary);
@@ -145,12 +160,15 @@
         </div>
     </div>
 
+    <!-- Novedad: Aviso Inferior -->
+    <div class="footer-note" id="footerNote">
+        <strong>⚠️ AVISO:</strong> Si alguna máquina se encuentra detenida, se deberá realizar ensambles o cualquier otra actividad que el líder de equipo les asigne.
+    </div>
+
 <script>
-    // URL DE APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
     let primeraCarga = true;
 
-    // Reloj
     function actualizarReloj() {
         const ahora = new Date();
         const horas = String(ahora.getHours()).padStart(2, '0');
@@ -200,7 +218,6 @@
         return { turno: turnoStr, maquina: maquinaStr };
     }
 
-    // DESCARGA SILENCIOSA: Actualiza sin borrar la pantalla
     function descargarDatosJSONP() {
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         
@@ -249,15 +266,14 @@
                     else if (datos.turno === "NOCHE") htmlNoche += cardHTML;
                 }
 
-                // Inyección rápida al DOM
                 document.getElementById('listManana').innerHTML = htmlManana || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
                 document.getElementById('listTarde').innerHTML = htmlTarde || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
                 document.getElementById('listNoche').innerHTML = htmlNoche || '<p style="text-align:center; color:#999; font-size:3vh; margin-top:20px;">Sin asignaciones</p>';
 
-                // Ocultar mensaje de carga solo en el primer arranque
                 if(primeraCarga) {
                     document.getElementById('loadingMsg').style.display = 'none';
                     document.getElementById('mainBoard').style.display = 'flex';
+                    document.getElementById('footerNote').style.display = 'block'; // Muestra la nota
                     primeraCarga = false;
                 }
 
@@ -282,13 +298,8 @@
         document.body.appendChild(script);
     }
 
-    // Arrancar la primera vez
     window.onload = descargarDatosJSONP;
-
-    // ACTUALIZACIÓN EN SEGUNDO PLANO CADA 10 MINUTOS
-    // Esto evita que la pantalla se ponga en blanco, solo refresca los datos.
     setInterval(descargarDatosJSONP, 600000);
-
 </script>
 </body>
 </html>
