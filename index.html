@@ -45,6 +45,21 @@
         
         .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         
+        /* Estilo para la nota informativa */
+        .info-note {
+            display: none; /* Se oculta por defecto, se muestra junto con los resultados */
+            margin-top: 20px;
+            background-color: #ffe5ed;
+            color: #b30046;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+            line-height: 1.4;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -73,10 +88,15 @@
     </div>
 
     <div id="resultArea" class="result-container"></div>
+    
+    <!-- Nota Informativa -->
+    <div id="infoNote" class="info-note">
+        <strong>⚠️ Importante:</strong> Si alguna máquina se encuentra detenida, se deberá realizar ensambles o cualquier otra actividad que el líder de equipo les asigne.
+    </div>
 </div>
 
 <script>
-    // Enlace de Apps Script (Ya actualizado con el último)
+    // Enlace de Apps Script 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxBhGp2oElpCW6YzacSbDhqGvbih0X0dBZmnipIkscPp2uJx2CqRQstESXu7M0iZ1gLA/exec'; 
 
     let datosPlanilla = {
@@ -207,10 +227,14 @@
         if(operario === "") {
             document.getElementById("tabsContainer").style.display = "none";
             document.getElementById("resultArea").style.display = "none";
+            document.getElementById("infoNote").style.display = "none";
             return;
         }
         document.getElementById("tabsContainer").style.display = "flex";
         setVista('HOY'); 
+        
+        // Muestra la nota informativa una vez que el operario se ha seleccionado
+        document.getElementById("infoNote").style.display = "block";
     }
 
     function setVista(vista) {
