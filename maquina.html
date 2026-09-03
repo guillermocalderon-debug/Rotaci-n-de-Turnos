@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga de Máquina - Libus</title>
+    <style>
+        :root {
+            --primary: #e6005a;
+            --bg: #f4f7f6;
+            --text: #333;
+            --card-bg: #ffffff;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 450px; box-sizing: border-box; }
+        
+        .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .logo { max-width: 140px; margin-bottom: 10px; }
+        .machine-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
+        .tonnage { font-size: 18px; color: #666; font-weight: bold; background: #eee; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 8px; }
+
+        #loadingMsg { text-align: center; color: var(--primary); font-weight: bold; font-size: 18px; margin: 30px 0; }
+        #errorMsg { text-align: center; color: #d9534f; font-weight: bold; display: none; margin: 20px 0; background: #ffebee; padding: 15px; border-radius: 8px; }
+
+        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; }
+
+        .nivel-card { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .nivel-title { font-size: 14px; color: var(--primary); font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        
+        .data-row { display: flex; margin-bottom: 6px; font-size: 15px; }
+        .data-label { font-weight: bold; width: 70px; color: #555; }
+        .data-value { flex: 1; color: #222; font-weight: 600; }
+        .data-value.ref { font-weight: 400; color: #444; font-size: 14px; }
+        
+        .empty-state { text-align: center; color: #888; font-style: italic; padding: 20px; }
+        
+        .footer-update { text-align: center; font-size: 12px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
+        <h1 class="machine-title" id="mTitle">Máquina --</h1>
+        <div class="tonnage" id="mTonnage">-- Tn</div>
+    </div>
+
+    <div id="loadingMsg">Consultando carga actual... ⏳</div>
+    <div id="errorMsg"></div>
+
+    <div id="contentArea">
+        <!-- Las tarjetas de producción se inyectarán aquí -->
+    </div>
+    
+    <div class="footer-update" id="lastUpdate"></div>
+</div>
+
+<script>
+    // Enlace directo a tu nuevo Apps Script
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby041S59KZIDgQ7qoOlqb-99LStSn0lzrNHgu3H5Rdi3Yj1QC3p031o7ZrlQ9Rd7uRcOQ/exec'; 
+
+    // Leer qué máquina pidió el usuario en la URL (ej: maquina.html?m=3)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetMachine = urlParams.get('m') || '1'; // Si no hay parámetro, asume la máquina 1 por defecto
+
+    document.getElementById('mTitle').innerText = targetMachine.toUpperCase() === 'E' ? `ENSAMBLE` : `MÁQUINA ${targetMachine}`;
+
+    function descargarDatosJSONP() {
+        const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+        
+        window[callbackName] = function(filasArray) {
+            try {
+                if (!filasArray || filasArray.length < 5) throw new Error("La planilla no tiene el formato esperado.");
+
+                const encabezados = filasArray[1];
+                let colIdx = -1;
+
+                // Buscar en qué columna está la máquina solicitada
+                for(let i = 2; i < encabezados.length; i++) {
+                    if(String(encabezados[i]).trim().toUpperCase() === targetMachine.toUpperCase()) {
+                        colIdx = i;
+                        break;
+                    }
+                }
+
+                if(colIdx === -1) throw new Error(`La máquina "${targetMachine}" no existe en el tablero.`);
+
+                document.getElementById('mTonnage').innerText = filasArray[2][colIdx] || "Sin Tonelaje";
+                
+                // Buscar celda de fecha para "Actualizado" (asumiendo que está en la fila 0)
+                let fechaActualizacion = "Reciente";
+                for (let cell of filasArray[0]) {
+                    if (cell && String(cell).includes(":")) {
+                        fechaActualizacion = cell;
+                        break;
+                    }
+                }
+                document.getElementById('lastUpdate').innerText = "Actualizado: " + fechaActualizacion;
+
+                let html = "";
+                
+                // Revisar si está detenida
+                let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
+                if(primeraCeldaData.includes("DETENIDA")) {
+                    html = `<div class="detenida-alert">⚠️ Máquina Detenida</div>`;
+                } else {
+                    let nivelesEncontrados = 0;
+                    
+                    // Recorrer los niveles saltando de 5 en 5 filas
+                    for(let r = 3; r < filasArray.length; r += 5) {
+                        let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
+                        if(cod === "") continue; 
+
+                        let ref = filasArray[r+1] ? String(filasArray[r+1][colIdx]).trim() : "-";
+                        let op = filasArray[r+2] ? String(filasArray[r+2][colIdx]).trim() : "-";
+                        let ctd = filasArray[r+3] ? String(filasArray[r+3][colIdx]).trim() : "-";
+                        let molde = filasArray[r+4] ? String(filasArray[r+4][colIdx]).trim() : "-";
+
+                        nivelesEncontrados++;
+                        let numNivel = Math.floor((r - 3) / 5) + 1;
+
+                        html += `
+                        <div class="nivel-card">
+                            <h3 class="nivel-title">NIVEL ${numNivel}</h3>
+                            <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
+                            <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
+                            <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
+                            <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
+                            ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
+                        </div>`;
+                    }
+
+                    if(nivelesEncontrados === 0) {
+                        html = `<div class="empty-state">No hay carga asignada para esta máquina en este momento.</div>`;
+                    }
+                }
+
+                document.getElementById('contentArea').innerHTML = html;
+                document.getElementById('loadingMsg').style.display = 'none';
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loadingMsg').style.display = 'none';
+                let errDiv = document.getElementById("errorMsg");
+                errDiv.innerText = "❌ " + error.message;
+                errDiv.style.display = "block";
+            } finally {
+                delete window[callbackName];
+                const scriptEl = document.getElementById(callbackName);
+                if(scriptEl) scriptEl.remove();
+            }
+        };
+
+        const script = document.createElement('script');
+        script.id = callbackName;
+        script.src = APPS_SCRIPT_URL + "?callback=" + callbackName;
+        
+        script.onerror = function() {
+            document.getElementById('loadingMsg').style.display = 'none';
+            let errDiv = document.getElementById("errorMsg");
+            errDiv.innerText = "❌ Error de red conectando con la base de datos.";
+            errDiv.style.display = "block";
+        };
+
+        document.body.appendChild(script);
+    }
+
+    window.onload = descargarDatosJSONP;
+</script>
+
+</body>
+</html>
