@@ -10,6 +10,7 @@
             --bg: #f4f7f6;
             --text: #333;
             --card-bg: #ffffff;
+            --success: #198754; /* Color verde para producción activa */
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 450px; box-sizing: border-box; }
@@ -24,8 +25,14 @@
 
         .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; }
 
-        .nivel-card { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
-        .nivel-title { font-size: 14px; color: var(--primary); font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        /* Tarjeta Estándar (En Espera) */
+        .nivel-card { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid #888; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); position: relative; overflow: hidden; }
+        .nivel-title { font-size: 14px; color: #666; font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        
+        /* Tarjeta Activa (En Producción - Color Verde) */
+        .nivel-card.active { border-left: 8px solid var(--success); background: #f0fdf4; border-top: 1px solid #c6f6d5; border-right: 1px solid #c6f6d5; border-bottom: 1px solid #c6f6d5; box-shadow: 0 6px 12px rgba(25, 135, 84, 0.15); }
+        .nivel-card.active .nivel-title { color: var(--success); font-size: 16px; }
+        .badge-produccion { position: absolute; top: 12px; right: 12px; background: var(--success); color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
         
         .data-row { display: flex; margin-bottom: 6px; font-size: 15px; }
         .data-label { font-weight: bold; width: 70px; color: #555; }
@@ -57,12 +64,10 @@
 </div>
 
 <script>
-    // Enlace directo a tu nuevo Apps Script
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby041S59KZIDgQ7qoOlqb-99LStSn0lzrNHgu3H5Rdi3Yj1QC3p031o7ZrlQ9Rd7uRcOQ/exec'; 
 
-    // Leer qué máquina pidió el usuario en la URL (ej: maquina.html?m=3)
     const urlParams = new URLSearchParams(window.location.search);
-    const targetMachine = urlParams.get('m') || '1'; // Si no hay parámetro, asume la máquina 1 por defecto
+    const targetMachine = urlParams.get('m') || '1'; 
 
     document.getElementById('mTitle').innerText = targetMachine.toUpperCase() === 'E' ? `ENSAMBLE` : `MÁQUINA ${targetMachine}`;
 
@@ -76,7 +81,6 @@
                 const encabezados = filasArray[1];
                 let colIdx = -1;
 
-                // Buscar en qué columna está la máquina solicitada
                 for(let i = 2; i < encabezados.length; i++) {
                     if(String(encabezados[i]).trim().toUpperCase() === targetMachine.toUpperCase()) {
                         colIdx = i;
@@ -88,7 +92,6 @@
 
                 document.getElementById('mTonnage').innerText = filasArray[2][colIdx] || "Sin Tonelaje";
                 
-                // Buscar celda de fecha para "Actualizado" (asumiendo que está en la fila 0)
                 let fechaActualizacion = "Reciente";
                 for (let cell of filasArray[0]) {
                     if (cell && String(cell).includes(":")) {
@@ -100,14 +103,13 @@
 
                 let html = "";
                 
-                // Revisar si está detenida
                 let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
+                
                 if(primeraCeldaData.includes("DETENIDA")) {
                     html = `<div class="detenida-alert">⚠️ Máquina Detenida</div>`;
                 } else {
                     let nivelesEncontrados = 0;
                     
-                    // Recorrer los niveles saltando de 5 en 5 filas
                     for(let r = 3; r < filasArray.length; r += 5) {
                         let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
                         if(cod === "") continue; 
@@ -120,8 +122,13 @@
                         nivelesEncontrados++;
                         let numNivel = Math.floor((r - 3) / 5) + 1;
 
+                        // Lógica visual: Si es el Nivel 1, lo pintamos de verde simulando la planilla
+                        let cssClass = numNivel === 1 ? "nivel-card active" : "nivel-card";
+                        let badgeHtml = numNivel === 1 ? `<div class="badge-produccion">En Producción</div>` : "";
+
                         html += `
-                        <div class="nivel-card">
+                        <div class="${cssClass}">
+                            ${badgeHtml}
                             <h3 class="nivel-title">NIVEL ${numNivel}</h3>
                             <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
                             <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
