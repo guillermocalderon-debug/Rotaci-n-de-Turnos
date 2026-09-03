@@ -10,37 +10,41 @@
             --bg: #f4f7f6;
             --text: #333;
             --card-bg: #ffffff;
-            --success: #198754; /* Color verde para producción activa */
+            --success: #198754; /* Color verde corporativo para Producción */
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 450px; box-sizing: border-box; }
         
-        .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 15px; }
         .logo { max-width: 140px; margin-bottom: 10px; }
         .machine-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
         .tonnage { font-size: 18px; color: #666; font-weight: bold; background: #eee; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 8px; }
 
+        /* Nota informativa superior */
+        .info-note { display: none; background-color: #e8f5e9; border-left: 5px solid var(--success); color: #146c43; padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+
         #loadingMsg { text-align: center; color: var(--primary); font-weight: bold; font-size: 18px; margin: 30px 0; }
         #errorMsg { text-align: center; color: #d9534f; font-weight: bold; display: none; margin: 20px 0; background: #ffebee; padding: 15px; border-radius: 8px; }
 
-        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; }
+        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; margin-bottom: 20px; }
 
-        /* Tarjeta Estándar (En Espera) */
-        .nivel-card { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid #888; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); position: relative; overflow: hidden; }
-        .nivel-title { font-size: 14px; color: #666; font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        /* Tarjeta Estándar (Niveles 2, 3, 4...) */
+        .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid #888; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .nivel-card.normal .nivel-title { font-size: 14px; color: #666; font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
         
-        /* Tarjeta Activa (En Producción - Color Verde) */
-        .nivel-card.active { border-left: 8px solid var(--success); background: #f0fdf4; border-top: 1px solid #c6f6d5; border-right: 1px solid #c6f6d5; border-bottom: 1px solid #c6f6d5; box-shadow: 0 6px 12px rgba(25, 135, 84, 0.15); }
-        .nivel-card.active .nivel-title { color: var(--success); font-size: 16px; }
-        .badge-produccion { position: absolute; top: 12px; right: 12px; background: var(--success); color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
-        
+        /* Tarjeta Activa (NIVEL 1 - En Producción) */
+        .nivel-card.active { border: 2px solid var(--success); background: #f8fff9; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 6px 15px rgba(25, 135, 84, 0.2); overflow: hidden; }
+        .nivel-card.active .nivel-header { background-color: var(--success); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .nivel-card.active .nivel-title { color: white; font-size: 16px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .badge-produccion { background: white; color: var(--success); font-size: 11px; padding: 5px 10px; border-radius: 20px; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .nivel-card.active .nivel-body { padding: 15px; }
+
         .data-row { display: flex; margin-bottom: 6px; font-size: 15px; }
         .data-label { font-weight: bold; width: 70px; color: #555; }
         .data-value { flex: 1; color: #222; font-weight: 600; }
         .data-value.ref { font-weight: 400; color: #444; font-size: 14px; }
         
         .empty-state { text-align: center; color: #888; font-style: italic; padding: 20px; }
-        
         .footer-update { text-align: center; font-size: 12px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
     </style>
 </head>
@@ -53,17 +57,21 @@
         <div class="tonnage" id="mTonnage">-- Tn</div>
     </div>
 
+    <!-- Nota explícita que aparecerá si hay carga -->
+    <div class="info-note" id="infoNota">
+        🟢 <strong>NIVEL 1:</strong> La orden resaltada en color verde indica lo que se encuentra actualmente en producción.
+    </div>
+
     <div id="loadingMsg">Consultando carga actual... ⏳</div>
     <div id="errorMsg"></div>
 
-    <div id="contentArea">
-        <!-- Las tarjetas de producción se inyectarán aquí -->
-    </div>
+    <div id="contentArea"></div>
     
     <div class="footer-update" id="lastUpdate"></div>
 </div>
 
 <script>
+    // Enlace directo a tu Apps Script
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby041S59KZIDgQ7qoOlqb-99LStSn0lzrNHgu3H5Rdi3Yj1QC3p031o7ZrlQ9Rd7uRcOQ/exec'; 
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -102,12 +110,12 @@
                 document.getElementById('lastUpdate').innerText = "Actualizado: " + fechaActualizacion;
 
                 let html = "";
-                
                 let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
                 
                 if(primeraCeldaData.includes("DETENIDA")) {
                     html = `<div class="detenida-alert">⚠️ Máquina Detenida</div>`;
                 } else {
+                    document.getElementById('infoNota').style.display = 'block'; // Mostramos la instrucción
                     let nivelesEncontrados = 0;
                     
                     for(let r = 3; r < filasArray.length; r += 5) {
@@ -122,24 +130,38 @@
                         nivelesEncontrados++;
                         let numNivel = Math.floor((r - 3) / 5) + 1;
 
-                        // Lógica visual: Si es el Nivel 1, lo pintamos de verde simulando la planilla
-                        let cssClass = numNivel === 1 ? "nivel-card active" : "nivel-card";
-                        let badgeHtml = numNivel === 1 ? `<div class="badge-produccion">En Producción</div>` : "";
-
-                        html += `
-                        <div class="${cssClass}">
-                            ${badgeHtml}
-                            <h3 class="nivel-title">NIVEL ${numNivel}</h3>
-                            <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
-                            <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
-                            <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
-                            <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
-                            ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
-                        </div>`;
+                        // DISEÑO DIFERENCIADO: Si es NIVEL 1, se pinta de verde
+                        if (numNivel === 1) {
+                            html += `
+                            <div class="nivel-card active">
+                                <div class="nivel-header">
+                                    <h3 class="nivel-title">NIVEL ${numNivel}</h3>
+                                    <div class="badge-produccion">EN PRODUCCIÓN</div>
+                                </div>
+                                <div class="nivel-body">
+                                    <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
+                                    <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
+                                    <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
+                                    <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
+                                    ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
+                                </div>
+                            </div>`;
+                        } else {
+                            html += `
+                            <div class="nivel-card normal">
+                                <h3 class="nivel-title">NIVEL ${numNivel}</h3>
+                                <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
+                                <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
+                                <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
+                                <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
+                                ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
+                            </div>`;
+                        }
                     }
 
                     if(nivelesEncontrados === 0) {
                         html = `<div class="empty-state">No hay carga asignada para esta máquina en este momento.</div>`;
+                        document.getElementById('infoNota').style.display = 'none';
                     }
                 }
 
