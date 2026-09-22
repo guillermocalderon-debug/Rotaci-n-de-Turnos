@@ -20,14 +20,14 @@
         .dashboard-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
         
         /* Sistema de cuadrícula para "ALL" */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; max-width: 1400px; margin: 0 auto; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; max-width: 1600px; margin: 0 auto; }
         
         /* Para que cuando sea 1 sola máquina se vea centrado y más pequeño */
         .single-mode .grid-container { max-width: 450px; }
 
         /* Tarjeta principal por máquina */
-        .machine-wrapper { background: var(--card-bg); padding: 25px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 4px solid var(--primary); }
-        .machine-header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .machine-wrapper { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 5px solid var(--primary); }
+        .machine-header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 12px; }
         .m-title { font-size: 24px; font-weight: 900; margin: 0; color: #222; }
         .m-tonnage { font-size: 14px; color: #666; font-weight: bold; background: #eee; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 5px; }
 
@@ -39,10 +39,10 @@
         .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 15px; font-size: 18px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; margin-bottom: 15px; }
 
         /* Niveles */
-        .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 5px solid #888; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 5px solid #888; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
         .nivel-card.normal .nivel-title { font-size: 13px; color: #666; font-weight: 900; margin: 0 0 8px 0; }
         
-        .nivel-card.active { border: 2px solid var(--success); background: #f8fff9; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .nivel-card.active { border: 2px solid var(--success); background: #f8fff9; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
         .nivel-card.active .nivel-header { background-color: var(--success); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
         .nivel-card.active .nivel-title { color: white; font-size: 14px; font-weight: 900; margin: 0; }
         .badge-produccion { background: white; color: var(--success); font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 900; }
@@ -77,14 +77,12 @@
 </div>
 
 <script>
-    // NUEVA URL ACTUALIZADA AQUÍ
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkc0ZKvbaPhpI8alcHcGQvZEeQB5MmeBMzsx9NXU1t_X-QJi16x7DPiWmymR9FD2ApGw/exec'; 
     const urlParams = new URLSearchParams(window.location.search);
     const targetMachine = urlParams.get('m') || '1'; 
     const isDashboard = targetMachine.toUpperCase() === 'ALL';
     const cacheKey = `libus_maquina_data_${targetMachine}`;
 
-    // Configurar títulos y estilo principal
     if (isDashboard) {
         document.getElementById('mainTitle').innerText = "TABLERO GENERAL DE PRODUCCIÓN";
     } else {
@@ -108,11 +106,9 @@
             const encabezados = filasArray[1];
             let maquinasARenderizar = [];
 
-            // Detectar qué máquinas dibujar
             for(let i = 2; i < encabezados.length; i++) {
                 let colName = String(encabezados[i]).trim().toUpperCase();
                 if (colName) {
-                    // Si es 'ALL' agarramos todas, si no, solo la específica
                     if (isDashboard || colName === targetMachine.toUpperCase()) {
                         maquinasARenderizar.push({ name: colName, index: i });
                     }
@@ -123,7 +119,6 @@
 
             let htmlFinal = "";
 
-            // Dibujar cada máquina
             maquinasARenderizar.forEach(maq => {
                 let colIdx = maq.index;
                 let tituloMaquina = maq.name === 'E' ? 'ENSAMBLE' : `MÁQUINA ${maq.name}`;
@@ -145,6 +140,14 @@
                     for(let r = 3; r < filasArray.length; r += 5) {
                         let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
                         if(cod === "") continue; 
+                        
+                        let numNivel = Math.floor((r - 3) / 5) + 1;
+                        
+                        // ✨ NUEVA LÓGICA PARA YODECK ✨
+                        // Si estamos en la vista ALL y el nivel es 3 o mayor, detenemos la lectura de esta máquina
+                        if (isDashboard && numNivel > 2) {
+                            break; 
+                        }
 
                         let ref = filasArray[r+1] ? String(filasArray[r+1][colIdx]).trim() : "-";
                         let op = filasArray[r+2] ? String(filasArray[r+2][colIdx]).trim() : "-";
@@ -152,7 +155,6 @@
                         let molde = filasArray[r+4] ? String(filasArray[r+4][colIdx]).trim() : "-";
 
                         nivelesEncontrados++;
-                        let numNivel = Math.floor((r - 3) / 5) + 1;
 
                         if (numNivel === 1) {
                             htmlFinal += `
@@ -180,6 +182,11 @@
                                 ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
                             </div>`;
                         }
+                    }
+                    
+                    // Mensaje opcional en Yodeck si había más niveles
+                    if(isDashboard && nivelesEncontrados === 2) {
+                        htmlFinal += `<div class="empty-state" style="padding:5px; font-size:12px;">+ Más niveles en cola...</div>`;
                     }
                     if(nivelesEncontrados === 0) {
                         htmlFinal += `<div class="empty-state">No hay carga asignada.</div>`;
@@ -232,11 +239,15 @@
     }
 
     function init() {
+        // Carga inicial
         const cachedData = localStorage.getItem(cacheKey);
         if (cachedData) {
             renderizarDatos(JSON.parse(cachedData), true);
         }
         descargarDatosJSONP();
+
+        // RECARGA AUTOMÁTICA PARA TV (YODECK) - Se ejecuta cada 5 minutos (300,000 milisegundos)
+        setInterval(descargarDatosJSONP, 300000);
     }
 
     window.onload = init;
