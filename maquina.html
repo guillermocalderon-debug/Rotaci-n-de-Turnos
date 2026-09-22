@@ -81,6 +81,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const targetMachine = urlParams.get('m') || '1'; 
     const isDashboard = targetMachine.toUpperCase() === 'ALL';
+    
+    // ✨ NUEVO: Detecta si queremos "Modo TV" limitado a 2 niveles
+    const isTVMode = isDashboard || urlParams.get('tv') === '1';
+    
     const cacheKey = `libus_maquina_data_${targetMachine}`;
 
     if (isDashboard) {
@@ -143,9 +147,8 @@
                         
                         let numNivel = Math.floor((r - 3) / 5) + 1;
                         
-                        // ✨ NUEVA LÓGICA PARA YODECK ✨
-                        // Si estamos en la vista ALL y el nivel es 3 o mayor, detenemos la lectura de esta máquina
-                        if (isDashboard && numNivel > 2) {
+                        // ✨ LÓGICA MODO TV ✨ (Aplica a Yodeck)
+                        if (isTVMode && numNivel > 2) {
                             break; 
                         }
 
@@ -184,8 +187,8 @@
                         }
                     }
                     
-                    // Mensaje opcional en Yodeck si había más niveles
-                    if(isDashboard && nivelesEncontrados === 2) {
+                    // Mensaje si había más niveles
+                    if(isTVMode && nivelesEncontrados === 2) {
                         htmlFinal += `<div class="empty-state" style="padding:5px; font-size:12px;">+ Más niveles en cola...</div>`;
                     }
                     if(nivelesEncontrados === 0) {
@@ -246,7 +249,7 @@
         }
         descargarDatosJSONP();
 
-        // RECARGA AUTOMÁTICA PARA TV (YODECK) - Se ejecuta cada 5 minutos (300,000 milisegundos)
+        // RECARGA AUTOMÁTICA CADA 5 MINUTOS (Para que Yodeck se actualice solo)
         setInterval(descargarDatosJSONP, 300000);
     }
 
