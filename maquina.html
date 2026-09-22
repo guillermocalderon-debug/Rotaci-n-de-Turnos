@@ -74,7 +74,8 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby041S59KZIDgQ7qoOlqb-99LStSn0lzrNHgu3H5Rdi3Yj1QC3p031o7ZrlQ9Rd7uRcOQ/exec'; 
+    // ESTA ES LA URL ACTUALIZADA
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwH-INrOL8Tn8Lvr0Kmo_x0Mx8236PjSUI0J0trM3WhI0MXjrwNwPE60OhdHxJJawQbRA/exec'; 
     const urlParams = new URLSearchParams(window.location.search);
     const targetMachine = urlParams.get('m') || '1'; 
     const cacheKey = `libus_maquina_data_${targetMachine}`;
@@ -88,7 +89,6 @@
             const encabezados = filasArray[1];
             let colIdx = -1;
 
-            // Al estar filtrado desde el servidor, la columna de la máquina casi siempre será la de índice 2
             for(let i = 2; i < encabezados.length; i++) {
                 if(String(encabezados[i]).trim().toUpperCase() === targetMachine.toUpperCase()) {
                     colIdx = i;
@@ -196,14 +196,13 @@
 
         const script = document.createElement('script');
         script.id = callbackName;
-        // AQUÍ ESTÁ EL CAMBIO IMPORTANTE: Se añade &m=${targetMachine} a la URL
         script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&m=${targetMachine}&_t=${Date.now()}`;
         
         script.onerror = function() {
             if (!localStorage.getItem(cacheKey)) {
                 document.getElementById('loadingMsg').style.display = 'none';
                 let errDiv = document.getElementById("errorMsg");
-                errDiv.innerText = "❌ Error conectando con la base de datos.";
+                errDiv.innerText = "❌ Error conectando con la base de datos. Verifica los permisos de Apps Script.";
                 errDiv.style.display = "block";
             }
         };
