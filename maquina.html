@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carga de Máquina - Libus</title>
+    <title>Tablero de Producción - Libus</title>
     <style>
         :root {
             --primary: #e6005a;
@@ -12,162 +12,183 @@
             --card-bg: #ffffff;
             --success: #198754;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: var(--card-bg); padding: 30px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 450px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         
-        .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 15px; }
+        /* Cabecera global */
+        .top-header { text-align: center; margin-bottom: 30px; }
         .logo { max-width: 140px; margin-bottom: 10px; }
-        .machine-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
-        .tonnage { font-size: 18px; color: #666; font-weight: bold; background: #eee; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 8px; }
+        .dashboard-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
+        
+        /* Sistema de cuadrícula para "ALL" */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; max-width: 1400px; margin: 0 auto; }
+        
+        /* Para que cuando sea 1 sola máquina se vea centrado y más pequeño */
+        .single-mode .grid-container { max-width: 450px; }
 
-        .info-note { display: none; background-color: #e8f5e9; border-left: 5px solid var(--success); color: #146c43; padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+        /* Tarjeta principal por máquina */
+        .machine-wrapper { background: var(--card-bg); padding: 25px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 4px solid var(--primary); }
+        .machine-header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .m-title { font-size: 24px; font-weight: 900; margin: 0; color: #222; }
+        .m-tonnage { font-size: 14px; color: #666; font-weight: bold; background: #eee; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 5px; }
+
+        .info-note { display: inline-block; background-color: #e8f5e9; border-left: 5px solid var(--success); color: #146c43; padding: 10px 15px; border-radius: 6px; font-size: 14px; margin-top: 15px; }
 
         #loadingMsg { text-align: center; color: var(--primary); font-weight: bold; font-size: 18px; margin: 30px 0; }
-        #errorMsg { text-align: center; color: #d9534f; font-weight: bold; display: none; margin: 20px 0; background: #ffebee; padding: 15px; border-radius: 8px; }
+        #errorMsg { text-align: center; color: #d9534f; font-weight: bold; display: none; margin: 20px auto; background: #ffebee; padding: 15px; border-radius: 8px; max-width: 400px; }
 
-        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; margin-bottom: 20px; }
+        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 15px; font-size: 18px; font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; margin-bottom: 15px; }
 
-        .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 6px solid #888; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
-        .nivel-card.normal .nivel-title { font-size: 14px; color: #666; font-weight: 900; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px; }
+        /* Niveles */
+        .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 5px solid #888; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .nivel-card.normal .nivel-title { font-size: 13px; color: #666; font-weight: 900; margin: 0 0 8px 0; }
         
-        .nivel-card.active { border: 2px solid var(--success); background: #f8fff9; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 6px 15px rgba(25, 135, 84, 0.2); overflow: hidden; }
-        .nivel-card.active .nivel-header { background-color: var(--success); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .nivel-card.active .nivel-title { color: white; font-size: 16px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-        .badge-produccion { background: white; color: var(--success); font-size: 11px; padding: 5px 10px; border-radius: 20px; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .nivel-card.active .nivel-body { padding: 15px; }
+        .nivel-card.active { border: 2px solid var(--success); background: #f8fff9; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .nivel-card.active .nivel-header { background-color: var(--success); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .nivel-card.active .nivel-title { color: white; font-size: 14px; font-weight: 900; margin: 0; }
+        .badge-produccion { background: white; color: var(--success); font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 900; }
+        .nivel-card.active .nivel-body { padding: 12px; }
 
-        .data-row { display: flex; margin-bottom: 6px; font-size: 15px; }
-        .data-label { font-weight: bold; width: 70px; color: #555; }
+        .data-row { display: flex; margin-bottom: 4px; font-size: 14px; }
+        .data-label { font-weight: bold; width: 60px; color: #555; }
         .data-value { flex: 1; color: #222; font-weight: 600; }
-        .data-value.ref { font-weight: 400; color: #444; font-size: 14px; }
+        .data-value.ref { font-weight: 400; color: #444; font-size: 13px; }
         
-        .empty-state { text-align: center; color: #888; font-style: italic; padding: 20px; }
-        .footer-update { text-align: center; font-size: 12px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .empty-state { text-align: center; color: #888; font-style: italic; padding: 15px; }
+        .footer-update { text-align: center; font-size: 13px; color: #777; margin-top: 10px; font-weight: bold; }
         .sync-indicator { display: inline-block; width: 8px; height: 8px; background: #e6005a; border-radius: 50%; animation: pulse 1s infinite; margin-left: 5px; }
         
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
-        }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
+<div id="mainBody">
+    <div class="top-header">
         <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
-        <h1 class="machine-title" id="mTitle">Máquina --</h1>
-        <div class="tonnage" id="mTonnage">-- Tn</div>
-    </div>
-
-    <div class="info-note" id="infoNota">
-        🟢 <strong>NIVEL 1:</strong> La orden resaltada en color verde indica lo que se encuentra actualmente en producción.
+        <h1 class="dashboard-title" id="mainTitle">Cargando...</h1>
+        <div class="footer-update" id="lastUpdate">Actualizando datos...</div>
+        <div class="info-note">🟢 <strong>NIVEL 1:</strong> En producción actualmente.</div>
     </div>
 
     <div id="loadingMsg">Consultando carga actual... ⏳</div>
     <div id="errorMsg"></div>
 
-    <div id="contentArea"></div>
-    
-    <div class="footer-update" id="lastUpdate"></div>
+    <div class="grid-container" id="contentArea"></div>
 </div>
 
 <script>
-    // ESTA ES LA URL ACTUALIZADA
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwH-INrOL8Tn8Lvr0Kmo_x0Mx8236PjSUI0J0trM3WhI0MXjrwNwPE60OhdHxJJawQbRA/exec'; 
+    // NUEVA URL ACTUALIZADA AQUÍ
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwkc0ZKvbaPhpI8alcHcGQvZEeQB5MmeBMzsx9NXU1t_X-QJi16x7DPiWmymR9FD2ApGw/exec'; 
     const urlParams = new URLSearchParams(window.location.search);
     const targetMachine = urlParams.get('m') || '1'; 
+    const isDashboard = targetMachine.toUpperCase() === 'ALL';
     const cacheKey = `libus_maquina_data_${targetMachine}`;
 
-    document.getElementById('mTitle').innerText = targetMachine.toUpperCase() === 'E' ? `ENSAMBLE` : `MÁQUINA ${targetMachine}`;
+    // Configurar títulos y estilo principal
+    if (isDashboard) {
+        document.getElementById('mainTitle').innerText = "TABLERO GENERAL DE PRODUCCIÓN";
+    } else {
+        document.getElementById('mainTitle').innerText = targetMachine.toUpperCase() === 'E' ? `PLANILLA ENSAMBLE` : `PLANILLA MÁQUINA ${targetMachine}`;
+        document.body.classList.add('single-mode'); 
+    }
 
     function renderizarDatos(filasArray, isCached = false) {
         try {
             if (!filasArray || filasArray.length < 5) throw new Error("La planilla no tiene el formato esperado.");
 
-            const encabezados = filasArray[1];
-            let colIdx = -1;
-
-            for(let i = 2; i < encabezados.length; i++) {
-                if(String(encabezados[i]).trim().toUpperCase() === targetMachine.toUpperCase()) {
-                    colIdx = i;
-                    break;
-                }
-            }
-
-            if(colIdx === -1) throw new Error(`La máquina "${targetMachine}" no existe en el tablero.`);
-
-            document.getElementById('mTonnage').innerText = filasArray[2][colIdx] || "Sin Tonelaje";
-            
             let fechaActualizacion = "Reciente";
             for (let cell of filasArray[0]) {
                 if (cell && String(cell).includes(":")) {
-                    fechaActualizacion = cell;
-                    break;
+                    fechaActualizacion = cell; break;
                 }
             }
-            
             const syncStatus = isCached ? '<span class="sync-indicator" title="Actualizando en segundo plano..."></span>' : '';
-            document.getElementById('lastUpdate').innerHTML = `Actualizado: ${fechaActualizacion} ${syncStatus}`;
+            document.getElementById('lastUpdate').innerHTML = `Última actualización Excel: ${fechaActualizacion} ${syncStatus}`;
 
-            let html = "";
-            let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
-            
-            if(primeraCeldaData.includes("DETENIDA")) {
-                html = `<div class="detenida-alert">⚠️ Máquina Detenida</div>`;
-                document.getElementById('infoNota').style.display = 'none';
-            } else {
-                document.getElementById('infoNota').style.display = 'block'; 
-                let nivelesEncontrados = 0;
+            const encabezados = filasArray[1];
+            let maquinasARenderizar = [];
+
+            // Detectar qué máquinas dibujar
+            for(let i = 2; i < encabezados.length; i++) {
+                let colName = String(encabezados[i]).trim().toUpperCase();
+                if (colName) {
+                    // Si es 'ALL' agarramos todas, si no, solo la específica
+                    if (isDashboard || colName === targetMachine.toUpperCase()) {
+                        maquinasARenderizar.push({ name: colName, index: i });
+                    }
+                }
+            }
+
+            if(maquinasARenderizar.length === 0) throw new Error("No se encontraron datos para la máquina seleccionada.");
+
+            let htmlFinal = "";
+
+            // Dibujar cada máquina
+            maquinasARenderizar.forEach(maq => {
+                let colIdx = maq.index;
+                let tituloMaquina = maq.name === 'E' ? 'ENSAMBLE' : `MÁQUINA ${maq.name}`;
+                let tonelaje = filasArray[2][colIdx] || "Sin Tonelaje";
                 
-                for(let r = 3; r < filasArray.length; r += 5) {
-                    let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
-                    if(cod === "") continue; 
+                let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
+                
+                htmlFinal += `
+                <div class="machine-wrapper">
+                    <div class="machine-header">
+                        <h2 class="m-title">${tituloMaquina}</h2>
+                        <div class="m-tonnage">${tonelaje} Tn</div>
+                    </div>`;
 
-                    let ref = filasArray[r+1] ? String(filasArray[r+1][colIdx]).trim() : "-";
-                    let op = filasArray[r+2] ? String(filasArray[r+2][colIdx]).trim() : "-";
-                    let ctd = filasArray[r+3] ? String(filasArray[r+3][colIdx]).trim() : "-";
-                    let molde = filasArray[r+4] ? String(filasArray[r+4][colIdx]).trim() : "-";
+                if(primeraCeldaData.includes("DETENIDA")) {
+                    htmlFinal += `<div class="detenida-alert">⚠️ Detenida</div>`;
+                } else {
+                    let nivelesEncontrados = 0;
+                    for(let r = 3; r < filasArray.length; r += 5) {
+                        let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
+                        if(cod === "") continue; 
 
-                    nivelesEncontrados++;
-                    let numNivel = Math.floor((r - 3) / 5) + 1;
+                        let ref = filasArray[r+1] ? String(filasArray[r+1][colIdx]).trim() : "-";
+                        let op = filasArray[r+2] ? String(filasArray[r+2][colIdx]).trim() : "-";
+                        let ctd = filasArray[r+3] ? String(filasArray[r+3][colIdx]).trim() : "-";
+                        let molde = filasArray[r+4] ? String(filasArray[r+4][colIdx]).trim() : "-";
 
-                    if (numNivel === 1) {
-                        html += `
-                        <div class="nivel-card active">
-                            <div class="nivel-header">
+                        nivelesEncontrados++;
+                        let numNivel = Math.floor((r - 3) / 5) + 1;
+
+                        if (numNivel === 1) {
+                            htmlFinal += `
+                            <div class="nivel-card active">
+                                <div class="nivel-header">
+                                    <h3 class="nivel-title">NIVEL ${numNivel}</h3>
+                                    <div class="badge-produccion">PRODUCIENDO</div>
+                                </div>
+                                <div class="nivel-body">
+                                    <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
+                                    <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
+                                    <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
+                                    <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
+                                    ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
+                                </div>
+                            </div>`;
+                        } else {
+                            htmlFinal += `
+                            <div class="nivel-card normal">
                                 <h3 class="nivel-title">NIVEL ${numNivel}</h3>
-                                <div class="badge-produccion">EN PRODUCCIÓN</div>
-                            </div>
-                            <div class="nivel-body">
                                 <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
                                 <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
                                 <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
                                 <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
                                 ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
-                            </div>
-                        </div>`;
-                    } else {
-                        html += `
-                        <div class="nivel-card normal">
-                            <h3 class="nivel-title">NIVEL ${numNivel}</h3>
-                            <div class="data-row"><div class="data-label">Cód:</div><div class="data-value">${cod}</div></div>
-                            <div class="data-row"><div class="data-label">Ref:</div><div class="data-value ref">${ref}</div></div>
-                            <div class="data-row"><div class="data-label">OP:</div><div class="data-value">${op}</div></div>
-                            <div class="data-row"><div class="data-label">Cant:</div><div class="data-value">${ctd}</div></div>
-                            ${molde !== "-" && molde !== "" ? `<div class="data-row"><div class="data-label">Molde:</div><div class="data-value">${molde}</div></div>` : ''}
-                        </div>`;
+                            </div>`;
+                        }
+                    }
+                    if(nivelesEncontrados === 0) {
+                        htmlFinal += `<div class="empty-state">No hay carga asignada.</div>`;
                     }
                 }
+                htmlFinal += `</div>`; 
+            });
 
-                if(nivelesEncontrados === 0) {
-                    html = `<div class="empty-state">No hay carga asignada para esta máquina en este momento.</div>`;
-                    document.getElementById('infoNota').style.display = 'none';
-                }
-            }
-
-            document.getElementById('contentArea').innerHTML = html;
+            document.getElementById('contentArea').innerHTML = htmlFinal;
             document.getElementById('loadingMsg').style.display = 'none';
             document.getElementById('errorMsg').style.display = 'none';
 
@@ -202,7 +223,7 @@
             if (!localStorage.getItem(cacheKey)) {
                 document.getElementById('loadingMsg').style.display = 'none';
                 let errDiv = document.getElementById("errorMsg");
-                errDiv.innerText = "❌ Error conectando con la base de datos. Verifica los permisos de Apps Script.";
+                errDiv.innerText = "❌ Error conectando con la base de datos.";
                 errDiv.style.display = "block";
             }
         };
