@@ -81,7 +81,6 @@
 
     document.getElementById('mTitle').innerText = targetMachine.toUpperCase() === 'E' ? `ENSAMBLE` : `MÁQUINA ${targetMachine}`;
 
-    // Extrae la lógica de pintado para reutilizarla con caché y con red
     function renderizarDatos(filasArray, isCached = false) {
         try {
             if (!filasArray || filasArray.length < 5) throw new Error("La planilla no tiene el formato esperado.");
@@ -89,6 +88,7 @@
             const encabezados = filasArray[1];
             let colIdx = -1;
 
+            // Al estar filtrado desde el servidor, la columna de la máquina casi siempre será la de índice 2
             for(let i = 2; i < encabezados.length; i++) {
                 if(String(encabezados[i]).trim().toUpperCase() === targetMachine.toUpperCase()) {
                     colIdx = i;
@@ -108,7 +108,6 @@
                 }
             }
             
-            // Si es desde caché, agregamos un indicador visual de que está sincronizando
             const syncStatus = isCached ? '<span class="sync-indicator" title="Actualizando en segundo plano..."></span>' : '';
             document.getElementById('lastUpdate').innerHTML = `Actualizado: ${fechaActualizacion} ${syncStatus}`;
 
@@ -163,7 +162,7 @@
                 }
 
                 if(nivelesEncontrados === 0) {
-                    html = `<div class="empty-state">No hay carga asignada para esta máquina.</div>`;
+                    html = `<div class="empty-state">No hay carga asignada para esta máquina en este momento.</div>`;
                     document.getElementById('infoNota').style.display = 'none';
                 }
             }
@@ -187,11 +186,9 @@
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         
         window[callbackName] = function(filasArray) {
-            // Guardar en caché y renderizar versión fresca
             localStorage.setItem(cacheKey, JSON.stringify(filasArray));
             renderizarDatos(filasArray, false);
             
-            // Limpieza
             delete window[callbackName];
             const scriptEl = document.getElementById(callbackName);
             if(scriptEl) scriptEl.remove();
@@ -199,15 +196,14 @@
 
         const script = document.createElement('script');
         script.id = callbackName;
-        // Agregamos un timestamp para evitar que el navegador cachee la petición GET
-        script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&_t=${Date.now()}`;
+        // AQUÍ ESTÁ EL CAMBIO IMPORTANTE: Se añade &m=${targetMachine} a la URL
+        script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&m=${targetMachine}&_t=${Date.now()}`;
         
         script.onerror = function() {
-            // Si falla la red pero hay caché, dejamos que el usuario siga viendo la caché
             if (!localStorage.getItem(cacheKey)) {
                 document.getElementById('loadingMsg').style.display = 'none';
                 let errDiv = document.getElementById("errorMsg");
-                errDiv.innerText = "❌ Error de red conectando con la base de datos.";
+                errDiv.innerText = "❌ Error conectando con la base de datos.";
                 errDiv.style.display = "block";
             }
         };
@@ -216,13 +212,10 @@
     }
 
     function init() {
-        // 1. Mostrar datos de la caché inmediatamente si existen
         const cachedData = localStorage.getItem(cacheKey);
         if (cachedData) {
             renderizarDatos(JSON.parse(cachedData), true);
         }
-
-        // 2. Traer datos frescos en segundo plano
         descargarDatosJSONP();
     }
 
