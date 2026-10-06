@@ -17,17 +17,30 @@
         /* Contenedor principal que se vuelve elástico en Modo TV */
         #mainBody { display: flex; flex-direction: column; height: 100%; }
 
-        /* Cabecera global elástica */
-        .top-header { text-align: center; margin-bottom: 1.5vh; display: flex; flex-direction: column; align-items: center;}
-        .logo { height: min(40px, 5vh); margin-bottom: 1vh; }
-        .dashboard-title { font-size: min(32px, 4vh); font-weight: 900; color: #111; margin: 0; text-transform: uppercase; }
-        .footer-update { text-align: center; font-size: min(13px, 1.8vh); color: #777; margin-top: 0.5vh; font-weight: bold; }
-        .info-note { display: inline-block; background-color: #e8f5e9; border-left: 5px solid var(--success); color: #146c43; padding: 0.8vh 1vw; border-radius: 6px; font-size: min(14px, 2vh); margin-top: 1vh; }
+        /* ========================================================
+           CABECERA OPTIMIZADA (Línea Horizontal)
+           ======================================================== */
+        .top-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2vh; 
+            padding-bottom: 1vh;
+            border-bottom: 2px solid var(--border-color, #e2e8f0);
+        }
+        .header-left { flex: 1; display: flex; justify-content: flex-start; align-items: center; }
+        .header-center { flex: 2; text-align: center; }
+        .header-right { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 5px;}
+
+        .logo { height: min(45px, 6vh); }
+        .dashboard-title { font-size: min(32px, 3.8vh); font-weight: 900; color: #111; margin: 0; text-transform: uppercase; letter-spacing: 1px;}
+        .footer-update { font-size: min(13px, 1.8vh); color: #777; font-weight: bold; margin-top: 0.5vh;}
+        .info-note { background-color: #e8f5e9; border-left: 5px solid var(--success); color: #146c43; padding: 0.8vh 1vw; border-radius: 6px; font-size: min(14px, 1.8vh); margin: 0; font-weight: 600;}
         
         #loadingMsg { text-align: center; color: var(--primary); font-weight: bold; font-size: 18px; margin: 2vh 0; }
         #errorMsg { text-align: center; color: #d9534f; font-weight: bold; display: none; margin: 2vh auto; background: #ffebee; padding: 15px; border-radius: 8px; max-width: 400px; }
 
-        /* Sistema de cuadrícula para "ALL" (Elástico) */
+        /* Sistema de cuadrícula por defecto (Celular/PC) */
         .grid-container { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
@@ -36,21 +49,33 @@
             max-width: 1800px; 
             margin: 0 auto; 
             flex-grow: 1; 
-            align-content: stretch; /* Estira las tarjetas para ocupar el espacio */
         }
         
-        /* Para que cuando sea 1 sola máquina se vea centrado */
         .single-mode .grid-container { max-width: 450px; }
 
-        /* Tarjeta principal por máquina (Elástica) */
-        .machine-wrapper { background: var(--card-bg); padding: 1vw; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between;}
+        /* Tarjeta principal por máquina */
+        .machine-wrapper { background: var(--card-bg); padding: 1vw; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;}
         .machine-header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 0.8vh; margin-bottom: 1vh; }
         .m-title { font-size: min(24px, 2.8vh); font-weight: 900; margin: 0; color: #222; }
-        .m-tonnage { font-size: min(14px, 1.8vh); color: #666; font-weight: bold; background: #eee; padding: 0.3vh 1vw; border-radius: 20px; display: inline-block; margin-top: 0.5vh; }
 
-        .detenida-alert { background-color: #ffc107; color: #000; text-align: center; padding: 1.5vh; font-size: min(18px, 2.2vh); font-weight: 900; border-radius: 8px; border: 2px solid #e0a800; text-transform: uppercase; margin-bottom: 1vh; }
+        /* 🔥 ALERTA DINÁMICA DE MÁQUINA DETENIDA 🔥 */
+        .detenida-alert { 
+            background-color: #ffc107; color: #000; text-align: center; padding: 1.5vh; 
+            font-size: min(18px, 2.5vh); font-weight: 900; border-radius: 8px; 
+            border: 3px solid #e0a800; text-transform: uppercase; 
+            width: 100%; box-sizing: border-box;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+            animation: dangerPulse 1.5s infinite alternate;
+        }
+        @keyframes dangerPulse {
+            from { background-color: #ffc107; box-shadow: 0 0 10px rgba(255, 193, 7, 0.4); transform: scale(1); color: #000; border-color: #e0a800;}
+            to { background-color: #ff2a2a; box-shadow: 0 0 25px rgba(255, 42, 42, 0.8); transform: scale(1.05); color: #fff; border-color: #cc0000;}
+        }
 
-        /* Niveles (Elásticos) */
+        /* Contenedor central para cuando la máquina está detenida */
+        .center-content { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+
+        /* Niveles */
         .nivel-card.normal { background: #fdfdfd; border: 1px solid #e0e0e0; border-left: 5px solid #888; border-radius: 8px; padding: 0.8vh 1vw; margin-bottom: 1vh; }
         .nivel-card.normal .nivel-title { font-size: min(13px, 1.8vh); color: #666; font-weight: 900; margin: 0 0 0.5vh 0; }
         
@@ -71,32 +96,51 @@
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
 
         /* ========================================================
-           MODO TV ESTRICTO: Bloquea Scroll y Fuerza Ajuste 100%
+           MODO TV ESTRICTO: 4 Columnas, 2 Filas, 100% Pantalla
            ======================================================== */
         body.tv-mode {
             height: 100vh;
             overflow: hidden;
             padding: 1.5vh 1.5vw;
         }
+        body.tv-mode .grid-container {
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: 1fr 1fr;
+            height: 100%;
+        }
 
         /* AJUSTES MÓVILES */
         @media (max-width: 768px) {
             body { padding: 15px; height: auto; overflow-y: visible;}
-            .grid-container { grid-template-columns: 1fr; }
+            
+            /* En móvil la cabecera vuelve a apilarse para que no se vea apretada */
+            .top-header { flex-direction: column; gap: 15px; text-align: center; }
+            .header-left, .header-center, .header-right { justify-content: center; align-items: center; width: 100%; }
+            .header-right { gap: 10px; }
+            
+            .grid-container { grid-template-columns: 1fr; height: auto; }
             .m-title { font-size: 20px; }
             .data-row { font-size: 13px; }
             .data-label { width: 50px; }
+            .detenida-alert { animation: none; background-color: #ffc107; color: #000; border-color: #e0a800; box-shadow: none;} 
         }
     </style>
 </head>
 <body>
 
 <div id="mainBody">
+    <!-- Cabecera Horizontal -->
     <div class="top-header">
-        <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
-        <h1 class="dashboard-title" id="mainTitle">Cargando...</h1>
-        <div class="footer-update" id="lastUpdate">Actualizando datos...</div>
-        <div class="info-note">🟢 <strong>NIVEL 1:</strong> En producción actualmente.</div>
+        <div class="header-left">
+            <img src="libus_positivo_CMYK.jpg" alt="Libus" class="logo" onerror="this.src='https://latam.libus.com/imagenes/logo_libus.png'">
+        </div>
+        <div class="header-center">
+            <h1 class="dashboard-title" id="mainTitle">Cargando...</h1>
+            <div class="footer-update" id="lastUpdate">Actualizando datos...</div>
+        </div>
+        <div class="header-right">
+            <div class="info-note">🟢 <strong>NIVEL 1:</strong> En producción actual.</div>
+        </div>
     </div>
 
     <div id="loadingMsg">Consultando carga actual... ⏳</div>
@@ -123,7 +167,7 @@
         document.body.classList.add('single-mode'); 
     }
 
-    // Si es Yodeck (TV) o modo ALL, bloqueamos la pantalla para forzar la elasticidad
+    // Si es Yodeck (TV) o modo ALL, bloqueamos la pantalla
     if (isTVMode) {
         document.body.classList.add('tv-mode');
     }
@@ -139,7 +183,7 @@
                 }
             }
             const syncStatus = isCached ? '<span class="sync-indicator" title="Actualizando en segundo plano..."></span>' : '';
-            document.getElementById('lastUpdate').innerHTML = `Última actualización Excel: ${fechaActualizacion} ${syncStatus}`;
+            document.getElementById('lastUpdate').innerHTML = `Última sincronización Excel: ${fechaActualizacion} ${syncStatus}`;
 
             const encabezados = filasArray[1];
             let maquinasARenderizar = [];
@@ -160,7 +204,6 @@
             maquinasARenderizar.forEach(maq => {
                 let colIdx = maq.index;
                 let tituloMaquina = maq.name === 'E' ? 'ENSAMBLE' : `MQ ${maq.name}`; 
-                let tonelaje = filasArray[2][colIdx] || "Sin Tonelaje";
                 
                 let primeraCeldaData = String(filasArray[3][colIdx]).trim().toUpperCase();
                 
@@ -168,14 +211,15 @@
                 <div class="machine-wrapper">
                     <div class="machine-header">
                         <h2 class="m-title">${tituloMaquina}</h2>
-                        <div class="m-tonnage">${tonelaje} Tn</div>
                     </div>`;
 
                 if(primeraCeldaData.includes("DETENIDA")) {
-                    htmlFinal += `<div class="detenida-alert">⚠️️ Detenida</div>`;
+                    htmlFinal += `
+                    <div class="center-content">
+                        <div class="detenida-alert">⚠️ MÁQUINA DETENIDA</div>
+                    </div>`;
                 } else {
                     let nivelesEncontrados = 0;
-                    // Contenedor interno para asegurar que las tarjetas suban si sobra espacio
                     htmlFinal += `<div style="flex-grow: 1;">`; 
                     for(let r = 3; r < filasArray.length; r += 5) {
                         let cod = filasArray[r] ? String(filasArray[r][colIdx]).trim() : "";
@@ -183,7 +227,7 @@
                         
                         let numNivel = Math.floor((r - 3) / 5) + 1;
                         
-                        // ✨ REGLA ESTRICTA: Mostrar como máximo Nivel 1 y Nivel 2
+                        // REGLA ESTRICTA: Mostrar como máximo Nivel 1 y Nivel 2
                         if (numNivel > 2) {
                             break; 
                         }
@@ -219,9 +263,8 @@
                             </div>`;
                         }
                     }
-                    htmlFinal += `</div>`; // Fin contenedor interno
+                    htmlFinal += `</div>`; 
                     
-                    // Mensaje estricto: si leyó 2 niveles, asumimos que puede haber más en cola en el Excel
                     if(nivelesEncontrados === 2) {
                         htmlFinal += `<div class="empty-state" style="padding:0; margin-top: 5px;">+ Más en cola...</div>`;
                     }
@@ -282,7 +325,6 @@
         }
         descargarDatosJSONP();
 
-        // RECARGA AUTOMÁTICA CADA 5 MINUTOS (Para que Yodeck se actualice solo)
         setInterval(descargarDatosJSONP, 300000);
     }
 
